@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2018, UNISOC Incorporated
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #ifndef __SC2355A_PBUFMAP_H_
 #define __SC2355A_PBUFMAP_H_
 

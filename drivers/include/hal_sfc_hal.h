@@ -1,8 +1,7 @@
 /*
- * marlin3_hal_spi.h
+ * Copyright (c) 2018, UNISOC Incorporated
  *
- *  Created on: Feb 11, 2018
- *      Author: dong.xiang@spreadtrum.com
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef __MARLIN3_HAL_SFC_HAL_H
