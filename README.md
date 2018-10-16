@@ -11,3 +11,6 @@ In order to use UWP SDKs, drivers and applications need to
 
 After above operations, all of the peripheral driver library functions will
 be accessible.
+
+This repository is maintained by Unisoc, if you have any questions, please
+create issue in https://github.com/unisoc/hal_uwp5/issues.
