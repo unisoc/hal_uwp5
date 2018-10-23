@@ -23,6 +23,12 @@ config USE_UWP_HAL_FW
 	bool
 	default y
 	help
-	  Provice interfaces to download firmware for another CM4._
+	  Provide interfaces to download firmware for another CM4.
+
+config USE_UWP_HAL_SFC
+   bool
+   default y
+   help
+     Provide interfaces to operate SFC.
 
 endif
