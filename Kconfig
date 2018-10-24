@@ -31,4 +31,6 @@ config USE_UWP_HAL_SFC
    help
      Provide interfaces to operate SFC.
 
+source "ext/hal/unisoc/uwp5661/drivers/src/sipc/Kconfig"
+
 endif
