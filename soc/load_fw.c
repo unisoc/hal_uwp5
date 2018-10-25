@@ -181,7 +181,7 @@ int cp_check_wifi_running(void)
 }
 
 static bool cp_init_flag = false;
-int cp_mcu_init(void)
+int uwp_mcu_init(void)
 {
 	int ret = 0;
 

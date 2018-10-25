@@ -27,6 +27,7 @@ extern "C" {
 #include "hal_eic.h"
 #include "hal_aon_clk.h"
 #include "hal_aon_glb.h"
+#include "hal_soc.h"
 
 #define TRUE   (1)
 #define FALSE  (0)
