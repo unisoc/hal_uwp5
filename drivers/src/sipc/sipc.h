@@ -53,6 +53,7 @@ extern "C" {
 		SMSG_CH_NR,		/* total channel number */
 	};
 
+#define SMSG_CH_OFFSET              12
 #define WIFI_CTRL_MSG_OFFSET		0
 #define WIFI_DATA_NOR_MSG_OFFSET	9
 
@@ -89,7 +90,7 @@ extern "C" {
 #define SZ_1K                               0x400
 #endif
 
-#define IPC_RING_ADDR       0x001ED000
+#define IPC_RING_ADDR       0x001EF000
 #define IPC_DST             0
 
 #define ipc_error(format, ...)     SYS_LOG_ERR(format,  ##__VA_ARGS__)
