@@ -23,6 +23,19 @@
 #define CP_RUNNING_BIT  0
 #define CP_WIFI_RUNNING_BIT     1
 
+#ifdef CONFIG_USE_UWP_HAL_SRAM
+#define put_reg32(val, reg) sys_write32(val, reg)
+#define get_reg32(reg) sys_read32(reg)
+
+#define DELAY(time) \
+do { \
+	unsigned int delay_time; \
+	for (delay_time = 0; delay_time < (time * 208); delay_time++) { \
+		*(volatile unsigned int *)0x100000; \
+	} \
+} while (0)
+#endif /* CONFIG_USE_UWP_HAL_SRAM */
+
 extern void GNSS_Start(void);
 
 int move_cp(char *src, char *dst, uint32_t size)
@@ -180,6 +193,44 @@ int cp_check_wifi_running(void)
 	return -1;
 }
 
+#ifdef CONFIG_USE_UWP_HAL_SRAM
+static void cp_sram_init(void)
+{
+	SYS_LOG_DBG("power on sram start");
+
+	unsigned int val;
+
+	val = get_reg32(0x40130004); /* enable */
+	val |= 0x220;
+	put_reg32(val, 0x40130004);
+	DELAY(1000);
+
+	val = get_reg32(0x4083c088); /* power on WRAP */
+	val &= ~(0x2);
+	put_reg32(val, 0x4083c088);
+	while (!(get_reg32(0x4083c00c) & (0x1 << 14))) {
+	}
+
+	val = get_reg32(0x4083c0a8);
+	val &= ~(0x4);
+	put_reg32(val, 0x4083c0a8);
+	while (!(get_reg32(0x4083c00c) & (0x1 << 16))) {
+	}
+
+	val = get_reg32(0x4083c134); /* close MEM PD */
+	val &= 0xffffff;
+	put_reg32(val, 0x4083c134);
+
+	val = get_reg32(0x4083c130);
+	val &= 0xfffffff0;
+	put_reg32(val, 0x4083c130);
+
+	SYS_LOG_INF("CP SRAM init done");
+}
+#else
+#define cp_sram_init(...)
+#endif /* CONFIG_USE_UWP_HAL_SRAM */
+
 static bool cp_init_flag = false;
 int uwp_mcu_init(void)
 {
@@ -191,6 +242,7 @@ int uwp_mcu_init(void)
 
 	SYS_LOG_DBG("Start init mcu and download firmware.");
 
+	cp_sram_init();
 	GNSS_Start();
 	ret = cp_mcu_pull_reset();
 	if (ret < 0) {
