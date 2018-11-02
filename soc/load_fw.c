@@ -24,9 +24,6 @@
 #define CP_WIFI_RUNNING_BIT     1
 
 #ifdef CONFIG_USE_UWP_HAL_SRAM
-#define put_reg32(val, reg) sys_write32(val, reg)
-#define get_reg32(reg) sys_read32(reg)
-
 #define DELAY(time) \
 do { \
 	unsigned int delay_time; \
@@ -200,30 +197,30 @@ static void cp_sram_init(void)
 
 	unsigned int val;
 
-	val = get_reg32(0x40130004); /* enable */
+	val = sys_read32(0x40130004); /* enable */
 	val |= 0x220;
-	put_reg32(val, 0x40130004);
+	sys_write32(val, 0x40130004);
 	DELAY(1000);
 
-	val = get_reg32(0x4083c088); /* power on WRAP */
+	val = sys_read32(0x4083c088); /* power on WRAP */
 	val &= ~(0x2);
-	put_reg32(val, 0x4083c088);
-	while (!(get_reg32(0x4083c00c) & (0x1 << 14))) {
+	sys_write32(val, 0x4083c088);
+	while (!(sys_read32(0x4083c00c) & (0x1 << 14))) {
 	}
 
-	val = get_reg32(0x4083c0a8);
+	val = sys_read32(0x4083c0a8);
 	val &= ~(0x4);
-	put_reg32(val, 0x4083c0a8);
-	while (!(get_reg32(0x4083c00c) & (0x1 << 16))) {
+	sys_write32(val, 0x4083c0a8);
+	while (!(sys_read32(0x4083c00c) & (0x1 << 16))) {
 	}
 
-	val = get_reg32(0x4083c134); /* close MEM PD */
+	val = sys_read32(0x4083c134); /* close MEM PD */
 	val &= 0xffffff;
-	put_reg32(val, 0x4083c134);
+	sys_write32(val, 0x4083c134);
 
-	val = get_reg32(0x4083c130);
+	val = sys_read32(0x4083c130);
 	val &= 0xfffffff0;
-	put_reg32(val, 0x4083c130);
+	sys_write32(val, 0x4083c130);
 
 	SYS_LOG_INF("CP SRAM init done");
 }
