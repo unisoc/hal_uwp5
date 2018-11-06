@@ -1,5 +1,6 @@
 if(CONFIG_HAS_UWP)
 	add_subdirectory_ifdef(CONFIG_SIPC drivers/src/sipc)
+	add_subdirectory_ifdef(CONFIG_BT_UWP5661 drivers/src/bt)
 	zephyr_include_directories(
 		drivers/include
 		soc

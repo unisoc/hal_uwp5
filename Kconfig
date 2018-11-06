@@ -44,5 +44,5 @@ config USE_UWP_HAL_SRAM
 	  Provide interfaces to initialize SRAM.
 
 source "ext/hal/unisoc/uwp5661/drivers/src/sipc/Kconfig"
-
+source "ext/hal/unisoc/uwp5661/drivers/src/bt/Kconfig"
 endif

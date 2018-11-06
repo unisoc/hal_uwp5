@@ -1,0 +1,6 @@
+config BT_UWP5661
+	bool "UNISOC bt"
+	depends on BT
+	default n
+	help
+      enbale bt feature
