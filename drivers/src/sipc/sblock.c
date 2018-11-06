@@ -4,8 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <hal_log.h>
+LOG_MODULE_DECLARE(LOG_MODULE_NAME);
+
 #include <zephyr.h>
-#include <logging/sys_log.h>
 #include <uwp_hal.h>
 #include <string.h>
 
@@ -125,7 +127,7 @@ void sblock_process(struct smsg *msg)
 		smsg_send(sblock->dst, prio, &mcmd, -1);
 		sblock->state = SBLOCK_STATE_READY;
 		recovery = 1;
-		ipc_debug("ap cp create %d channel success!", sblock->channel);
+		LOG_DBG("ap cp create %d channel success!", sblock->channel);
 		if (sblock->channel == SMSG_CH_BT) {
 			sprd_bt_irq_init();
 		}
@@ -151,7 +153,7 @@ void sblock_process(struct smsg *msg)
 		break;
 	};
 	if (ret) {
-		ipc_warn("non-handled sblock msg: %d-%d, %d, %d, %d",
+		LOG_WRN("non-handled sblock msg: %d-%d, %d, %d, %d",
 			sblock->dst, sblock->channel,
 			msg->type, msg->flag, msg->value);
 		ret = 0;
@@ -216,7 +218,7 @@ int sblock_create(u8_t dst, u8_t channel,
 	}
 
 	sblock->smem_addr = block_addr;
-	ipc_debug("smem_addr 0x%x record_share_addr 0x%x channel %d",
+	LOG_DBG("smem_addr 0x%x record_share_addr 0x%x channel %d",
 		sblock->smem_addr, block_addr, channel);
 
 	ring = &sblock->ring;
@@ -253,7 +255,7 @@ int sblock_create(u8_t dst, u8_t channel,
 	poolhd->rxblk_wrptr = 0;
 	poolhd->rxblk_blks = poolhd->txblk_blks +
 	txblocknum * sizeof(struct sblock_blks);
-		ipc_debug("0x%p ringhd %p poolhd %p", sblock, ringhd, poolhd);
+		LOG_DBG("0x%p ringhd %p poolhd %p", sblock, ringhd, poolhd);
 
 	ring->r_txblks = (struct sblock_blks *)ringhd->txblk_blks;
 	ring->r_rxblks = (struct sblock_blks *)ringhd->rxblk_blks;
@@ -281,14 +283,14 @@ int sblock_create(u8_t dst, u8_t channel,
 
 	sblock->state = SBLOCK_STATE_READY;
 
-	ipc_debug("r_txblks %p %p %p %p",
+	LOG_DBG("r_txblks %p %p %p %p",
 	ring->r_txblks, ring->r_rxblks, ring->p_txblks, ring->p_rxblks);
 
 	prio = get_channel_prio(channel);
 
 	ret = smsg_ch_open(sblock->dst, sblock->channel, prio, K_FOREVER);
 	if (ret != 0) {
-		ipc_error("Failed to open channel %d", sblock->channel);
+		LOG_ERR("Failed to open channel %d", sblock->channel);
 		return ret;
 	}
 
@@ -323,7 +325,7 @@ int sblock_unregister_callback(u8_t channel)
 	int dst = 0;
 	struct sblock_mgr *sblock = &sblocks[dst][channel-SMSG_CH_OFFSET];
 
-	ipc_debug("%d channel=%d ", dst, channel);
+	LOG_DBG("%d channel=%d ", dst, channel);
 
 	sblock->callback = NULL;
 
@@ -336,7 +338,7 @@ int sblock_register_callback(u8_t channel,
 	int dst = 0;
 	struct sblock_mgr *sblock = &sblocks[dst][channel-SMSG_CH_OFFSET];
 
-	ipc_debug("%d channel=%d %p", dst, channel, callback);
+	LOG_DBG("%d channel=%d %p", dst, channel, callback);
 
 	sblock->callback = callback;
 
@@ -358,7 +360,7 @@ int sblock_register_notifier(u8_t dst, u8_t channel,
 
 #ifndef CONFIG_SIPC_WCN
 	if (sblock->handler) {
-		ipc_warn("sblock handler already registered");
+		LOG_WRN("sblock handler already registered");
 		return -EBUSY;
 	}
 #endif
@@ -385,7 +387,7 @@ void sblock_put(u8_t dst, u8_t channel, struct sblock *blk)
 	ring->r_txblks[txpos].addr = (u32_t)blk->addr;
 	ring->r_txblks[txpos].length = poolhd->txblk_size;
 	poolhd->txblk_rdptr = poolhd->txblk_rdptr - 1;
-	ipc_debug("%d %d %d ", poolhd->txblk_rdptr, poolhd->txblk_wrptr, txpos);
+	LOG_DBG("%d %d %d ", poolhd->txblk_rdptr, poolhd->txblk_wrptr, txpos);
 
 	if ((int)(poolhd->txblk_wrptr - poolhd->txblk_rdptr) == 1) {
 		wakeup_smsg_task_all(&(ring->getwait));
@@ -406,18 +408,18 @@ int sblock_get(u8_t dst, u8_t channel, struct sblock *blk, int timeout)
 
 	ring = &sblock->ring;
 	poolhd = (volatile struct sblock_ring_header *)(&ring->header->pool);
-	ipc_debug("%d %d ch=%d", poolhd->txblk_rdptr,
+	LOG_DBG("%d %d ch=%d", poolhd->txblk_rdptr,
 		poolhd->txblk_wrptr, channel);
 
 	if (poolhd->txblk_rdptr == poolhd->txblk_wrptr) {
 		ret = k_sem_take(&ring->getwait, timeout);
 		if (ret) {
-			ipc_warn("wait timeout!");
+			LOG_WRN("wait timeout!");
 			ret = ret;
 		}
 
 		if (sblock->state == SBLOCK_STATE_IDLE) {
-			ipc_warn("sblock state is idle!");
+			LOG_WRN("sblock state is idle!");
 			ret = -EIO;
 		}
 	}
@@ -427,7 +429,7 @@ int sblock_get(u8_t dst, u8_t channel, struct sblock *blk, int timeout)
 		txpos = sblock_get_ringpos(poolhd->txblk_rdptr,
 			poolhd->txblk_count);
 
-		ipc_debug("txpos %d poolhd->txblk_rdptr %d",
+		LOG_DBG("txpos %d poolhd->txblk_rdptr %d",
 			txpos, poolhd->txblk_rdptr);
 		blk->addr = (void *)ring->p_txblks[txpos].addr;
 		blk->length = poolhd->txblk_size;
@@ -453,7 +455,7 @@ static int sblock_send_ex(u8_t dst, u8_t channel,
 	int ret = 0;
 
 	if (sblock->state != SBLOCK_STATE_READY) {
-		ipc_warn("sblock-%d-%d not ready!", dst, channel);
+		LOG_WRN("sblock-%d-%d not ready!", dst, channel);
 		return sblock ? -EIO : -ENODEV;
 	}
 
@@ -502,7 +504,7 @@ int sblock_send_finish(u8_t dst, u8_t channel)
 	int ret = 0;
 
 	if (sblock->state != SBLOCK_STATE_READY) {
-		ipc_warn("sblock-%d-%d not ready!", dst, channel);
+		LOG_WRN("sblock-%d-%d not ready!", dst, channel);
 		return sblock ? -EIO : -ENODEV;
 	}
 
@@ -526,29 +528,29 @@ int sblock_receive(u8_t dst, u8_t channel, struct sblock *blk, int timeout)
 	int rxpos, index, ret = 0;
 
 	if (sblock->state != SBLOCK_STATE_READY) {
-		ipc_warn("sblock-%d-%d not ready!", dst, channel);
+		LOG_WRN("sblock-%d-%d not ready!", dst, channel);
 		return sblock ? -EIO : -ENODEV;
 	}
 	ring = &sblock->ring;
 	ringhd = (volatile struct sblock_ring_header *)(&ring->header->ring);
 
-	ipc_debug("channel=%d,%d, wrptr=%d, rdptr=%d",
+	LOG_DBG("channel=%d,%d, wrptr=%d, rdptr=%d",
 		channel, timeout, ringhd->rxblk_wrptr, ringhd->rxblk_rdptr);
 
 	if (ringhd->rxblk_wrptr == ringhd->rxblk_rdptr) {
 		if (timeout == 0) {
 			/* no wait */
-			ipc_debug("ch %d is empty,please wait!", channel);
+			LOG_DBG("ch %d is empty,please wait!", channel);
 			ret = -ENODATA;
 		} else if (timeout < 0) {
 			/* wait forever */
 			ret = k_sem_take(&ring->recvwait, K_FOREVER);
 			if (ret < 0) {
-				ipc_warn(" wait interrupted!");
+				LOG_WRN(" wait interrupted!");
 			}
 
 			if (sblock->state == SBLOCK_STATE_IDLE) {
-				ipc_warn(" sblock state is idle!");
+				LOG_WRN(" sblock state is idle!");
 				ret = -EIO;
 			}
 
@@ -556,14 +558,14 @@ int sblock_receive(u8_t dst, u8_t channel, struct sblock *blk, int timeout)
 			/* wait timeout */
 			ret = k_sem_take(&ring->recvwait, timeout);
 			if (ret < 0) {
-				ipc_warn(" wait interrupted!");
+				LOG_WRN(" wait interrupted!");
 			} else if (ret == 0) {
-				ipc_warn(" wait timeout!");
+				LOG_WRN(" wait timeout!");
 				ret = -ETIME;
 			}
 
 			if (sblock->state == SBLOCK_STATE_IDLE) {
-				ipc_warn(" sblock state is idle!");
+				LOG_WRN(" sblock state is idle!");
 				ret = -EIO;
 			}
 		}
@@ -580,7 +582,7 @@ int sblock_receive(u8_t dst, u8_t channel, struct sblock *blk, int timeout)
 		blk->addr = (void *)ring->r_rxblks[rxpos].addr;
 		blk->length = ring->r_rxblks[rxpos].length;
 		ringhd->rxblk_rdptr = ringhd->rxblk_rdptr + 1;
-		ipc_debug("channel=%d, rxpos=%d, addr=%p, len=%d",
+		LOG_DBG("channel=%d, rxpos=%d, addr=%p, len=%d",
 			channel, rxpos, blk->addr, blk->length);
 		index = sblock_get_index(((u32_t)blk->addr -
 			(u32_t)ring->rxblk_virt), sblock->rxblksz);
@@ -599,7 +601,7 @@ int sblock_get_arrived_count(u8_t dst, u8_t channel)
 	int blk_count = 0;
 
 	if (sblock->state != SBLOCK_STATE_READY) {
-		ipc_warn("sblock-%d-%d not ready!", dst, channel);
+		LOG_WRN("sblock-%d-%d not ready!", dst, channel);
 		return -ENODEV;
 	}
 
@@ -621,7 +623,7 @@ int sblock_get_free_count(u8_t dst, u8_t channel)
 
 
 	if (sblock->state != SBLOCK_STATE_READY) {
-		ipc_warn("sblock-%d-%d not ready!", dst, channel);
+		LOG_WRN("sblock-%d-%d not ready!", dst, channel);
 		return -ENODEV;
 	}
 
@@ -646,7 +648,7 @@ int sblock_release(u8_t dst, u8_t channel, struct sblock *blk)
 	int rx_num;
 
 	if (sblock->state != SBLOCK_STATE_READY) {
-		ipc_warn("sblock-%d-%d not ready!", dst, channel);
+		LOG_WRN("sblock-%d-%d not ready!", dst, channel);
 		return -ENODEV;
 	}
 
@@ -680,13 +682,13 @@ int sblock_release(u8_t dst, u8_t channel, struct sblock *blk)
 	ring->p_rxblks[rxpos].addr = (u32_t)blk->addr;
 	ring->p_rxblks[rxpos].length = poolhd->rxblk_size;
 	poolhd->rxblk_wrptr = poolhd->rxblk_wrptr + 1;
-	ipc_debug(":ch=%d addr=%x %d %d", channel, ring->p_rxblks[rxpos].addr,
+	LOG_DBG(":ch=%d addr=%x %d %d", channel, ring->p_rxblks[rxpos].addr,
 		poolhd->rxblk_wrptr, poolhd->rxblk_rdptr);
 
 	if ((int)(poolhd->rxblk_wrptr - poolhd->rxblk_rdptr) >= (rx_num-2) &&
 			sblock->state == SBLOCK_STATE_READY) {
 		/* send smsg to notify the peer side */
-		ipc_debug("send release smsg");
+		LOG_DBG("send release smsg");
 		smsg_set(&mevt, channel, SMSG_TYPE_EVENT,
 			SMSG_EVENT_SBLOCK_RELEASE, 0);
 		smsg_send(dst, prio, &mevt, -1);

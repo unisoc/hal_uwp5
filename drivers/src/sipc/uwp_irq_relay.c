@@ -4,12 +4,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <hal_log.h>
+LOG_MODULE_DECLARE(LOG_MODULE_NAME);
+
 #include <zephyr.h>
 #include <kernel.h>
 #include <device.h>
 #include <init.h>
 #include <string.h>
-#include <logging/sys_log.h>
 #include <uwp_hal.h>
 #include "sipc.h"
 #include "sipc_priv.h"
@@ -124,7 +126,7 @@ void clear_bt_int(int irq_num)
 		HW_DEC_int1_clear_sts; break;
 
 	default:
-		ipc_info("bt clear irq error %d\n", irq_num); break;
+		LOG_INF("bt clear irq error %d\n", irq_num); break;
 	}
 
 }
@@ -251,7 +253,7 @@ void sprd_wifi_irq_disable(void)
 
 void sprd_wifi_irq_enable_num(u32_t num)
 {
-	ipc_info("wifi irq enable %d\n", num);
+	LOG_INF("wifi irq enable %d\n", num);
 
 	switch (num) {
 	case NVIC_INT_MAC:
@@ -267,14 +269,14 @@ void sprd_wifi_irq_enable_num(u32_t num)
 		irq_enable(NVIC_INT_DPD);
 	break;
 	default:
-		ipc_info("wifi irq enable error num %d\n", num);
+		LOG_INF("wifi irq enable error num %d\n", num);
 	break;
 	}
 
 }
 void sprd_wifi_irq_disable_num(u32_t num)
 {
-	ipc_info("wifi irq enable %d\n", num);
+	LOG_INF("wifi irq enable %d\n", num);
 	switch (num) {
 	case NVIC_INT_MAC:
 		irq_disable(NVIC_INT_MAC);
@@ -289,7 +291,7 @@ void sprd_wifi_irq_disable_num(u32_t num)
 		irq_disable(NVIC_INT_DPD);
 	break;
 	default:
-		ipc_info("wifi irq disable error num %d\n", num);
+		LOG_INF("wifi irq disable error num %d\n", num);
 	break;
 	}
 
@@ -299,7 +301,7 @@ static void wifi_aon_irq_handler(int ch, void *arg)
 	struct smsg msg;
 	s32_t irq = (s32_t)arg;
 
-	ipc_info("wifi irq aon %d\n", irq);
+	LOG_INF("wifi irq aon %d\n", irq);
 	smsg_set(&msg, SMSG_CH_IRQ_DIS, SMSG_TYPE_EVENT, 0, (irq + 50));
 	smsg_send_irq(SIPC_ID_AP, &msg);
 

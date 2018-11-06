@@ -3,6 +3,10 @@
  * All rights reserved.
  *
  */
+
+#include <hal_log.h>
+LOG_MODULE_REGISTER(LOG_MODULE_NAME);
+
 #include <zephyr.h>
 #include <uwp_hal.h>
 

@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2018, UNISOC Incorporated
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <hal_log.h>
+LOG_MODULE_DECLARE(LOG_MODULE_NAME);
+
 #include <kernel.h>
 #include <string.h>
 #include <uwp_hal.h>
@@ -314,7 +323,7 @@ static void spiflash_get_statue(struct spi_flash *flash, u8_t * status1,
 	cmd = CMD_READ_STATUS2;
 	spiflash_cmd_read(flash, &cmd, 1, 0xFFFFFFFF, status2, 1);
 
-	LOGI("SF: spiflash status: status 1 = 0x%x, status2 = 0x%x\n",
+	LOG_INF("SF: spiflash status: status 1 = 0x%x, status2 = 0x%x\n",
 			*status1, *status2);
 }
 
@@ -363,7 +372,7 @@ struct spi_flash_params *spiflash_scan(void)
 	CREATE_CMD_(cmd_desc[1], 0, BYTE_NUM_3, CMD_MODE_READ, BIT_MODE_1);
 	spiflash_read_write(cmd_desc, 2, (u32_t *) idcode);
 
-	LOGI("SF: new Got idcode 0: 0x%x 1:0x%x 2:0x%x 3:0x%x 4:0x%x\n",
+	LOG_INF("SF: new Got idcode 0: 0x%x 1:0x%x 2:0x%x 3:0x%x 4:0x%x\n",
 			idcode[0], idcode[1], idcode[2], idcode[3], idcode[4]);
 #if 0
 	CREATE_CMD_(cmd_desc[0], CMD_READ_ID, BYTE_NUM_1,
@@ -373,7 +382,7 @@ struct spi_flash_params *spiflash_scan(void)
 	CREATE_CMD_(cmd_desc[0], 0, BYTE_NUM_3, CMD_MODE_READ, BIT_MODE_1);
 	spi_read(cmd_desc, 1, (u32_t *) idcode);
 
-	LOGI("SF: 2new Got idcode 0: 0x%x 1:0x%x 2:0x%x 3:0x%x 4:0x%x\n",
+	LOG_INF("SF: 2new Got idcode 0: 0x%x 1:0x%x 2:0x%x 3:0x%x 4:0x%x\n",
 			idcode[0], idcode[1], idcode[2], idcode[3], idcode[4]);
 #endif
 	manufacturer_id = (u16_t) idcode[0];
@@ -383,13 +392,13 @@ struct spi_flash_params *spiflash_scan(void)
 	for (i = 0; i < ARRAY_SIZE(spi_flash_spec_table); i++) {
 		spi_spec = &spi_flash_spec_table[i];
 		if (spi_spec->id_manufacturer == manufacturer_id) {
-			LOGI("SF: get manufacture ID %04x\n", manufacturer_id);
+			LOG_INF("SF: get manufacture ID %04x\n", manufacturer_id);
 			break;
 		}
 	}
 
 	if (i == ARRAY_SIZE(spi_flash_spec_table)) {
-		LOGI("SF: Unsupported manufacture %04x\n", manufacturer_id);
+		LOG_INF("SF: Unsupported manufacture %04x\n", manufacturer_id);
 		return NULL;
 	}
 
@@ -397,14 +406,14 @@ struct spi_flash_params *spiflash_scan(void)
 		params = &(spi_spec->table)[i];
 		if (params->idcode1 == jedec) {
 			if (params->idcode2 == ext_jedec)
-				LOGI("SF: get ID %04x %04x\n", jedec,
+				LOG_INF("SF: get ID %04x %04x\n", jedec,
 						ext_jedec);
 			break;
 		}
 	}
 
 	if (i == spi_spec->table_num) {
-		LOGI("SF: Unsupported ID %04x %04x\n", jedec, ext_jedec);
+		LOG_INF("SF: Unsupported ID %04x %04x\n", jedec, ext_jedec);
 		return NULL;
 	} else {
 		return params;
@@ -747,7 +756,7 @@ int spiflash_cmd_poll_bit(struct spi_flash *flash, unsigned long timeout,
 		}
 		mdelay(5);
 	} while (timeout--);
-	LOGI("SF: time out!\n");
+	LOG_INF("SF: time out!\n");
 	return -1;
 }
 
@@ -772,7 +781,7 @@ int spiflash_cmd_erase(struct spi_flash *flash, u8_t erase_cmd, u32_t offset)
 
 	dummp = offset % flash->sector_size;
 	if (dummp) {
-		LOGI("SF: Erase offset/length not multiple of erase size\n");
+		LOG_INF("SF: Erase offset/length not multiple of erase size\n");
 		return -1;
 	}
 
@@ -1034,7 +1043,7 @@ int __attribute__ ((optimize("-O0"))) spiflash_cmd_program_sec(struct spi_flash
 	}
 
 	if (ret < 0) {
-		LOGI("SF: enabling write failed \n");
+		LOG_INF("SF: enabling write failed \n");
 		return ret;
 	}
 
@@ -1057,7 +1066,7 @@ int __attribute__ ((optimize("-O0"))) spiflash_cmd_program_sec(struct spi_flash
 			spiflash_write_page_sec(flash, cmd_desc, 2,
 					((char *)buf + actual), chunk_len);
 		if (ret < 0) {
-			LOGI("SF: write failed\n");
+			LOG_INF("SF: write failed\n");
 			break;
 		}
 
@@ -1094,7 +1103,7 @@ int spiflash_cmd_program(struct spi_flash *flash, u32_t offset,
 		chunk_len = min(data_len, space_len);
 		ret = spiflash_write_enable(flash);
 		if (ret < 0) {
-			LOGI("SF: enabling write failed\n");
+			LOG_INF("SF: enabling write failed\n");
 			break;
 		}
 
@@ -1111,7 +1120,7 @@ int spiflash_cmd_program(struct spi_flash *flash, u32_t offset,
 			spiflash_write_page(flash, cmd_desc, 2,
 					((char *)buf + actual), chunk_len);
 		if (ret < 0) {
-			LOGI("SF: write failed\n");
+			LOG_INF("SF: write failed\n");
 			break;
 		}
 
@@ -1508,9 +1517,9 @@ int uwp_spi_flash_init(struct spi_flash *flash,
 	flash->size = p->page_size * p->sector_size
 		* p->nr_sectors * p->nr_blocks;
 
-	LOGI("SF: Detected %s with page size %u, total ",
+	LOG_INF("SF: Detected %s with page size %u, total ",
 			p->name, p->page_size);
-	LOGI("flash size is 0x%x\n", flash->size);
+	LOG_INF("flash size is 0x%x\n", flash->size);
 
 	*params = p;
 

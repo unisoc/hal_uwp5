@@ -4,6 +4,12 @@ config HAS_UWP
 	  Enable UNISOC uwp5 hal libraries with register definitions
 	  and helper functions.
 
+module = UWP_HAL
+module-dep = LOG
+module-str = Log level for UWP HAL
+module-help = Sets log level for UWP HAL.
+source "subsys/logging/Kconfig.template.log_config"
+
 if HAS_UWP
 
 config USE_UWP_HAL_CACHE

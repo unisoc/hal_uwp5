@@ -4,12 +4,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <hal_log.h>
+LOG_MODULE_DECLARE(LOG_MODULE_NAME);
+
 #include <zephyr.h>
 #include <kernel.h>
 #include <device.h>
 #include <init.h>
 #include <string.h>
-#include <logging/sys_log.h>
 #include <uwp_hal.h>
 #include "sipc.h"
 #include "sipc_priv.h"
@@ -19,15 +21,15 @@ static int sipc_init(struct device *arg)
 {
 	int ret;
 
-	SYS_LOG_INF("sipc init start.");
+	LOG_INF("sipc init start.");
 
 	ret = smsg_init(IPC_DST, IPC_RING_ADDR);
 	if (ret) {
-		SYS_LOG_ERR("sipc init failed.");
+		LOG_ERR("sipc init failed.");
 		return ret;
 	}
 
-	SYS_LOG_INF("sipc init success.");
+	LOG_INF("sipc init success.");
 
 	return 0;
 }

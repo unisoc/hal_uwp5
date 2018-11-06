@@ -32,7 +32,6 @@ extern "C" {
 #define TRUE   (1)
 #define FALSE  (0)
 
-#define LOGI printk
 #define SCI_ASSERT(a)
 #define mdelay k_sleep
 

@@ -93,11 +93,6 @@ extern "C" {
 #define IPC_RING_ADDR       0x001EF000
 #define IPC_DST             0
 
-#define ipc_error(format, ...)     SYS_LOG_ERR(format,  ##__VA_ARGS__)
-#define ipc_warn(format, ...)     SYS_LOG_WRN(format,  ##__VA_ARGS__)
-#define ipc_info(format, ...)     SYS_LOG_INF(format,  ##__VA_ARGS__)
-#define ipc_debug(format, ...)     SYS_LOG_DBG(format,  ##__VA_ARGS__)
-
 int wifi_irq_init(void);
 void sprd_wifi_irq_disable_num(u32_t num);
 void sprd_wifi_irq_enable_num(u32_t num);
