@@ -301,21 +301,6 @@ int get_pskey_buf(void *buf)
     return size;
 }
 
-void set_mac_address(uint8_t *addr)
-{
-    uint8_t default_addr[6] = {0x00, 0x00, 0x00, 0xDA, 0x45, 0x40};
-    u32_t random;
-#if 0
-    if(0 == memcmp(blues_config.address, default_addr,sizeof(default_addr))) {
-        random =sys_rand32_get();
-        memcpy(default_addr, &random, 3);
-        memcpy(addr, default_addr, sizeof(default_addr));
-    } else {
-        memcpy(addr, blues_config.address, sizeof(blues_config.address));
-    }
-#endif
-}
-
 void get_mac_address(char *addr)
 {
     memcpy(addr, marlin3_pskey.device_addr, sizeof(marlin3_pskey.device_addr));
@@ -323,8 +308,6 @@ void get_mac_address(char *addr)
 
 int marlin3_init(void) {
     BTD("%s\n", __func__);
-
-    set_mac_address(marlin3_pskey.device_addr);
 
     return 0;
 }

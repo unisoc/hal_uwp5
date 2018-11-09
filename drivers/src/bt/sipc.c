@@ -55,7 +55,7 @@
 
 static int test_cmd = 0;
 
-static K_THREAD_STACK_DEFINE(rx_thread_stack, 256);
+static K_THREAD_STACK_DEFINE(rx_thread_stack, 1024);
 static struct k_thread rx_thread_data;
 static struct k_sem	event_sem;
 
@@ -72,7 +72,7 @@ static inline int hwdec_write_word(unsigned int word)
   return WORD_ALIGN;
 }
 
-int hwdec_write_align(unsigned char *data, int len)
+int hwdec_write_align(unsigned char type, unsigned char *data, int len)
 {
   unsigned int *align_p, value;
   unsigned char *p;
@@ -81,11 +81,17 @@ int hwdec_write_align(unsigned char *data, int len)
   if (len <= 0)
     return len;
 
-  word_num = len / WORD_ALIGN;
-  remain_num = len % WORD_ALIGN;
+  word_num = (len - 3) / WORD_ALIGN;
+  remain_num = (len - 3) % WORD_ALIGN;
+
+  value = ((unsigned int)type) << 0
+	  | ((unsigned int)data[0]) << 8
+	  | ((unsigned int)data[1]) << 16
+	  | ((unsigned int)data[2]) << 24;
+  hwdec_write_word(value);
 
   if (word_num) {
-    for (i = 0, align_p = (unsigned int *)data; i < word_num; i++) {
+    for (i = 0, align_p = (unsigned int *)(data + 3); i < word_num; i++) {
     value = *align_p++;
     hwdec_write_word(value);
     }
@@ -113,10 +119,6 @@ static void recv_callback(int ch)
 
 void sipc_test()
 {
-	unsigned char buf[] = {0x01, 0x03, 0x0c, 0x00};
-	test_cmd = 1;
-	HCIDUMP("-> ", buf, sizeof(buf));
-	hwdec_write_align(buf, sizeof(buf));
 }
 
 static void bt_spi_handle_vendor_evt(u8_t *rxmsg)
@@ -261,14 +263,12 @@ static int sipc_send(struct net_buf *buf)
 
 	switch (bt_buf_get_type(buf)) {
 	case BT_BUF_CMD:
-		net_buf_push_u8(buf, HCI_CMD);
 		HCIDUMP("-> ", buf->data, buf->len);
-		hwdec_write_align(buf->data, buf->len);
+		hwdec_write_align(HCI_CMD, buf->data, buf->len);
 		break;
 	case BT_BUF_ACL_OUT:
-		net_buf_push_u8(buf, HCI_ACL);
 		HCIDUMP("-> ", buf->data, buf->len);
-		hwdec_write_align(buf->data, buf->len);
+		hwdec_write_align(HCI_ACL, buf->data, buf->len);
 		break;
 	default:
 		BTE("Unknown packet type %u", bt_buf_get_type(buf));
@@ -283,7 +283,19 @@ static int sipc_send(struct net_buf *buf)
 static int sipc_open(void)
 {
 	BTD("");
+	sblock_create(0, SMSG_CH_BT,BT_TX_BLOCK_NUM, BT_TX_BLOCK_SIZE,
+				BT_RX_BLOCK_NUM, BT_RX_BLOCK_SIZE);
+
+	sblock_register_callback(SMSG_CH_BT, recv_callback);
+
+	k_thread_create(&rx_thread_data, rx_thread_stack,
+			K_THREAD_STACK_SIZEOF(rx_thread_stack),
+			rx_thread, NULL, NULL, NULL,
+			K_PRIO_COOP(CONFIG_BT_RX_PRIO),
+			0, K_NO_WAIT);
+
 	uwp5661_vendor_init();
+
 	return 0;
 }
 
@@ -301,18 +313,6 @@ static int _bt_sipc_init(struct device *unused)
 	BTD("%s\n", __func__);
 
 	k_sem_init(&event_sem, 0, UINT_MAX);
-
-	sblock_create(0, SMSG_CH_BT,BT_TX_BLOCK_NUM, BT_TX_BLOCK_SIZE,
-				BT_RX_BLOCK_NUM, BT_RX_BLOCK_SIZE);
-
-	sblock_register_callback(SMSG_CH_BT, recv_callback);
-
-	k_thread_create(&rx_thread_data, rx_thread_stack,
-			K_THREAD_STACK_SIZEOF(rx_thread_stack),
-			rx_thread, NULL, NULL, NULL,
-			K_PRIO_COOP(CONFIG_BT_RX_PRIO),
-			0, K_NO_WAIT);
-
 	bt_hci_driver_register(&drv);
 
 	return 0;
