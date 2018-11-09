@@ -72,9 +72,9 @@ void uki_hex(char *dst, unsigned char *src, size_t binsz);
 
 #define HCIDUMP(tag, bin, binsz) 					\
 	do {											\
-		/*if (vendor_log_level >= LOG_LEVEL_DEBUG) { 		\
+		if (vendor_log_level >= LOG_LEVEL_DEBUG) { 		\
 			uki_hex_dump_block(tag, bin, binsz); 	\
-		}*/											\
+		}											\
 	}while(0)
 
 #endif  // LIBBT_CONF_SPRD_MARLIN_INCLUDE_MARLIN_H_

@@ -55,8 +55,11 @@
 
 
 static K_THREAD_STACK_DEFINE(rx_thread_stack, 1024);
+static K_THREAD_STACK_DEFINE(tx_thread_stack, 1024);
 static struct k_thread rx_thread_data;
+static struct k_thread tx_thread_data;
 static struct k_sem	event_sem;
+static K_FIFO_DEFINE(tx_queue);
 
 #define LE_ADV_REPORT_COUNT 40
 #define LE_ADV_REPORT_SIZE 50
@@ -153,11 +156,31 @@ static struct net_buf *alloc_adv_buf(unsigned char *src)
 	return buf;
 }
 
-static void rx_thread(void *p1, void *p2, void *p3)
+static void tx_thread(void)
 {
-	ARG_UNUSED(p1);
-	ARG_UNUSED(p2);
-	ARG_UNUSED(p3);
+	struct net_buf *buf;
+
+	while (1) {
+		buf = net_buf_get(&tx_queue, K_FOREVER);
+		switch (bt_buf_get_type(buf)) {
+		case BT_BUF_CMD:
+			HCIDUMP("-> ", buf->data, buf->len);
+			hwdec_write_align(HCI_CMD, buf->data, buf->len);
+			break;
+		case BT_BUF_ACL_OUT:
+			HCIDUMP("-> ", buf->data, buf->len);
+			hwdec_write_align(HCI_ACL, buf->data, buf->len);
+			break;
+		default:
+			BTE("Unknown packet type %u", bt_buf_get_type(buf));
+			break;
+		}
+		net_buf_unref(buf);
+	}
+}
+
+static void rx_thread(void)
+{
 	int ret;
 	u32_t left_length;
 	struct net_buf *buf;
@@ -252,25 +275,8 @@ rx_continue:;
 
 static int sipc_send(struct net_buf *buf)
 {
-    int ret = 0;
-	BTV("buf %p type %u len %u\n", buf, bt_buf_get_type(buf), buf->len);
-
-	switch (bt_buf_get_type(buf)) {
-	case BT_BUF_CMD:
-		HCIDUMP("-> ", buf->data, buf->len);
-		hwdec_write_align(HCI_CMD, buf->data, buf->len);
-		break;
-	case BT_BUF_ACL_OUT:
-		HCIDUMP("-> ", buf->data, buf->len);
-		hwdec_write_align(HCI_ACL, buf->data, buf->len);
-		break;
-	default:
-		BTE("Unknown packet type %u", bt_buf_get_type(buf));
-		ret = -1;
-	}
-
-	net_buf_unref(buf);
-	return ret;
+	net_buf_put(&tx_queue, buf);
+	return 0;
 }
 
 
@@ -284,7 +290,13 @@ static int sipc_open(void)
 
 	k_thread_create(&rx_thread_data, rx_thread_stack,
 			K_THREAD_STACK_SIZEOF(rx_thread_stack),
-			rx_thread, NULL, NULL, NULL,
+			(k_thread_entry_t)rx_thread, NULL, NULL, NULL,
+			K_PRIO_COOP(CONFIG_BT_RX_PRIO),
+			0, K_NO_WAIT);
+
+	k_thread_create(&tx_thread_data, tx_thread_stack,
+			K_THREAD_STACK_SIZEOF(tx_thread_stack),
+			(k_thread_entry_t)tx_thread, NULL, NULL, NULL,
 			K_PRIO_COOP(CONFIG_BT_RX_PRIO),
 			0, K_NO_WAIT);
 
