@@ -53,7 +53,6 @@
 #define SPRD_DP_DMA_UARD_SDIO_BUFFER_BASE_ADDR (SPRD_DP_DMA_READ_BUFFER_BASE_ADDR + (1 << SPRD_DP_RW_REG_SHIFT_BYTE))
 #define WORD_ALIGN 4
 
-static int test_cmd = 0;
 
 static K_THREAD_STACK_DEFINE(rx_thread_stack, 1024);
 static struct k_thread rx_thread_data;
@@ -176,11 +175,6 @@ static void rx_thread(void *p1, void *p2, void *p3)
 		}
 
 		HCIDUMP("<- ", blk.addr, blk.length);
-        if (test_cmd) {
-			test_cmd = 0;
-			BTV("test cmd\n");
-			goto rx_continue;
-		}
 
 		left_length = blk.length;
 
