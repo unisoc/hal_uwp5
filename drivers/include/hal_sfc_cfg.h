@@ -321,6 +321,7 @@ static struct spi_flash_params giga_flash_table[] = {
 #define WINBOND_ID_W25X32			0x3016
 #define WINBOND_ID_W25X64			0x3017
 #define WINBOND_ID_W25Q32DW			0x6016
+#define WINBOND_ID_W25Q32JW			0x8016
 #define WINBOND_ID_W25Q64FW			0x6017
 #define WINBOND_ID_W25Q128FW		0x6018
 #define WINBOND_ID_W25Q16			0x4015
@@ -376,6 +377,18 @@ static struct spi_flash_params winbond_flash_table[] = {
 		READ_FREQ_104M,
 		DUMMY_4CLOCKS,
 		"W25Q32DW",
+	},
+	{
+		WINBOND_ID_W25Q32JW,
+		0,
+		256,
+		16,
+		16,
+		64,
+		QPI_MODE,
+		READ_FREQ_104M,
+		DUMMY_4CLOCKS,
+		"W25Q32JW",
 	},
 	{
 		WINBOND_ID_W25Q64FW,
