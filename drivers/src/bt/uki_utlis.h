@@ -68,12 +68,20 @@ static inline void set_stack_log_level(int level) {
 
 
 void uki_hex_dump_block(char *tag, unsigned char *bin, size_t binsz);
+void uki_hex_dump_block_ex(unsigned char type, char *tag, unsigned char *bin, size_t binsz);
 void uki_hex(char *dst, unsigned char *src, size_t binsz);
 
 #define HCIDUMP(tag, bin, binsz) 					\
 	do {											\
 		if (vendor_log_level >= LOG_LEVEL_DEBUG) { 		\
 			uki_hex_dump_block(tag, bin, binsz); 	\
+		}											\
+	}while(0)
+
+#define HCIDUMP_EX(type, tag, bin, binsz) 					\
+	do {											\
+		if (vendor_log_level >= LOG_LEVEL_DEBUG) { 		\
+			uki_hex_dump_block_ex(type, tag, bin, binsz); 	\
 		}											\
 	}while(0)
 

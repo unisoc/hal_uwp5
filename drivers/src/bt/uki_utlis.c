@@ -69,3 +69,24 @@ void uki_hex_dump_block(char *tag, unsigned char *bin, size_t binsz)
 	if (tail)
 		uki_hexdump(tag, bin + i * HEX_DUMP_BLOCK_SIZE, tail);
 }
+
+void uki_hex_dump_block_ex(unsigned char type, char *tag, unsigned char *bin, size_t binsz)
+{
+	int loop = binsz / HEX_DUMP_BLOCK_SIZE;
+	int tail = binsz % HEX_DUMP_BLOCK_SIZE;
+	int i;
+
+	uki_hexdump(tag, &type, 1);
+
+	if (!loop) {
+		uki_hexdump(tag, bin, binsz);
+		return;
+	}
+
+	for (i = 0; i < loop; i++) {
+		uki_hexdump(tag, bin + i * HEX_DUMP_BLOCK_SIZE, HEX_DUMP_BLOCK_SIZE);
+	}
+
+	if (tail)
+		uki_hexdump(tag, bin + i * HEX_DUMP_BLOCK_SIZE, tail);
+}

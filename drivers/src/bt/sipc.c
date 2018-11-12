@@ -164,11 +164,11 @@ static void tx_thread(void)
 		buf = net_buf_get(&tx_queue, K_FOREVER);
 		switch (bt_buf_get_type(buf)) {
 		case BT_BUF_CMD:
-			HCIDUMP("-> ", buf->data, buf->len);
+			HCIDUMP_EX(HCI_CMD, "-> ", buf->data, buf->len);
 			hwdec_write_align(HCI_CMD, buf->data, buf->len);
 			break;
 		case BT_BUF_ACL_OUT:
-			HCIDUMP("-> ", buf->data, buf->len);
+			HCIDUMP_EX(HCI_ACL, "-> ", buf->data, buf->len);
 			hwdec_write_align(HCI_ACL, buf->data, buf->len);
 			break;
 		default:
