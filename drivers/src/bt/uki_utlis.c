@@ -19,7 +19,7 @@
 #include <bluetooth/bluetooth.h>
 #include "uki_utlis.h"
 
-int vendor_log_level = LOG_LEVEL_DEBUG;
+int vendor_log_level = LOG_LEVEL_INFO;
 int stack_log_level = LOG_LEVEL_DEBUG;
 
 void uki_hexdump(char *tag, unsigned char *bin, size_t binsz)
