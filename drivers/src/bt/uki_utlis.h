@@ -16,6 +16,8 @@
 #define LOG_LEVEL_DEBUG 4
 #define LOG_LEVEL_VERBOSE 5
 
+#include <logging/log.h>
+
 extern int vendor_log_level;
 extern int stack_log_level;
 
@@ -29,47 +31,48 @@ static inline void set_stack_log_level(int level) {
 	printk("%s: %d\n",__func__, stack_log_level);
 }
 
-
-#define BTE(fmt, ...) 							\
-	do { 										\
-		if (vendor_log_level >= LOG_LEVEL_ERROR) { 	\
-			printk(fmt, ##__VA_ARGS__); 		\
-		} 										\
+#define BTE(fmt, ...) 									\
+	do { 												\
+		if (vendor_log_level >= LOG_LEVEL_ERROR) { 		\
+			printk(fmt"\n", ##__VA_ARGS__); 			\
+		} 												\
 	}while(0)
 
 
-#define BTW(fmt, ...) 							\
-	do {										\
+#define BTW(fmt, ...) 									\
+	do {												\
 		if (vendor_log_level >= LOG_LEVEL_WARNING) { 	\
-			printk(fmt, ##__VA_ARGS__); 		\
-		}										\
+			printk(fmt"\n", ##__VA_ARGS__); 			\
+		}												\
 	}while(0)
 
-#define BTI(fmt, ...) 							\
-	do {										\
+#define BTI(fmt, ...) 									\
+	do {												\
 		if (vendor_log_level >= LOG_LEVEL_INFO) {		\
-			printk(fmt, ##__VA_ARGS__); 		\
-		}										\
+			printk(fmt"\n", ##__VA_ARGS__); 			\
+		}												\
 	}while(0)
 
-#define BTD(fmt, ...) 							\
-	do {										\
+#define BTD(fmt, ...) 									\
+	do {												\
 		if (vendor_log_level >= LOG_LEVEL_DEBUG) {		\
-			printk(fmt, ##__VA_ARGS__); 		\
-		}										\
+			printk(fmt"\n", ##__VA_ARGS__); 			\
+		}												\
 	}while(0)
 
-#define BTV(fmt, ...) 							\
-	do {										\
+#define BTV(fmt, ...) 									\
+	do {												\
 		if (vendor_log_level >= LOG_LEVEL_VERBOSE) { 	\
-			printk(fmt, ##__VA_ARGS__); 		\
-		}										\
+			printk(fmt"\n", ##__VA_ARGS__); 			\
+		}												\
 	}while(0)
 
 
 void uki_hex_dump_block(char *tag, unsigned char *bin, size_t binsz);
-void uki_hex_dump_block_ex(unsigned char type, char *tag, unsigned char *bin, size_t binsz);
 void uki_hex(char *dst, unsigned char *src, size_t binsz);
+void uki_str2hex(u8_t *dst, u8_t *src, size_t size);
+void uki_hexdump(char *tag, unsigned char *bin, size_t binsz);
+void uki_hex_dump_block_ex(unsigned char type, char *tag, unsigned char *bin, size_t binsz);
 
 #define HCIDUMP(tag, bin, binsz) 					\
 	do {											\

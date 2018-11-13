@@ -114,7 +114,7 @@ int hwdec_write_align(unsigned char type, unsigned char *data, int len)
 
 static void recv_callback(int ch)
 {
-	BTV("recv_callback: %d\n", ch);
+	BTV("recv_callback: %d", ch);
 	if(ch == SMSG_CH_BT)
 		k_sem_give(&event_sem);
 }
@@ -137,16 +137,16 @@ static struct net_buf *alloc_adv_buf(unsigned char *src)
 	u8_t length = src[EVT_ADV_LENGTH];
 
 	if (!memcmp(adv_cache, src + EVT_ADV_LENGTH, length + 1)) {
-		//BTD("dropped surplus adv\n");
+		//BTD("dropped surplus adv");
 		return buf;
 	} else {
 		memcpy(adv_cache, src + EVT_ADV_LENGTH, length + 1);
 		adv_cache[length + 1] = 0;
 	}
-	//BTD("ADV REPORT, avail: %d, total: %d\n", le_adv_report_pool.avail_count, le_adv_report_pool.buf_count);
+	//BTD("ADV REPORT, avail: %d, total: %d", le_adv_report_pool.avail_count, le_adv_report_pool.buf_count);
 	buf = net_buf_alloc(&le_adv_report_pool, ADV_RECV_TIMEOUT);
 	if (buf == NULL) {
-		BTE("alloc adv buffer failed\n");
+		BTE("alloc adv buffer failed");
 		adv_cache[0] = 0;
 		return buf;
 	}
@@ -188,7 +188,7 @@ static void rx_thread(void)
 	struct bt_hci_acl_hdr acl_hdr;
 
 	while (1) {
-		BTV("wait for data\n");
+		BTV("wait for data");
 		k_sem_take(&event_sem, K_FOREVER);
 		struct sblock blk;
 		ret = sblock_receive(0, SMSG_CH_BT, &blk, 0);
@@ -205,7 +205,7 @@ static void rx_thread(void)
 
 			rxmsg = ((unsigned char*)blk.addr) + blk.length - left_length;
 
-			//BTD("handle rx data +++\n");
+			//BTD("handle rx data +++");
 			switch (rxmsg[PACKET_TYPE]) {
 			case HCI_EVT:
 				switch (rxmsg[EVT_HEADER_EVENT]) {
@@ -213,7 +213,7 @@ static void rx_thread(void)
 					{
 						bt_spi_handle_vendor_evt(rxmsg);
 						left_length -= rxmsg[EVT_HEADER_SIZE] + 3;
-						BTD("left: vendor %d\n", left_length);
+						BTD("left: vendor %d", left_length);
 						if (!left_length) {
 							goto rx_continue;
 						} else {
@@ -255,18 +255,18 @@ static void rx_thread(void)
 				left_length -= sys_le16_to_cpu(acl_hdr.len) + 5;
 				break;
 			default:
-				BTE("Unknown BT buf type %d\n", rxmsg[0]);
+				BTE("Unknown BT buf type %d", rxmsg[0]);
 				goto rx_continue;
 			}
 
-			//BTD("handle rx data ---\n");
+			//BTD("handle rx data ---");
 			if (rxmsg[PACKET_TYPE] == HCI_EVT &&
 			    bt_hci_evt_is_prio(rxmsg[EVT_HEADER_EVENT])) {
 				bt_recv_prio(buf);
 			} else {
 				bt_recv(buf);
 			}
-			BTD("left: %d\n", left_length);
+			BTD("left: %d", left_length);
 		} while (left_length);
 rx_continue:;
 		sblock_release(0, SMSG_CH_BT, &blk);
@@ -316,7 +316,7 @@ static int _bt_sipc_init(struct device *unused)
 {
 	ARG_UNUSED(unused);
 
-	BTD("%s\n", __func__);
+	BTD("%s", __func__);
 
 	k_sem_init(&event_sem, 0, UINT_MAX);
 	bt_hci_driver_register(&drv);

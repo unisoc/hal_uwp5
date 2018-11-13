@@ -27,6 +27,8 @@
 #include "host/hci_core.h"
 #include "bt_configure.h"
 
+extern int uwp_mcu_init(void);
+
 int get_disable_buf(void *buf)
 {
     uint8_t *p, msg_req[HCI_CMD_MAX_LEN];
@@ -238,9 +240,16 @@ void get_mac_address(char *addr)
 }
 
 int marlin3_init(void) {
-    BTD("%s\n", __func__);
+	int ret;
 
-    return 0;
+    BTD("%s", __func__);
+
+	ret = uwp_mcu_init();
+	if (ret) {
+		BTD("%s firmware download failed", __func__);
+	}
+
+    return ret;
 }
 
 void uwp5661_vendor_init(void)
@@ -250,21 +259,21 @@ void uwp5661_vendor_init(void)
     char data[256] = {0};
     marlin3_init();
 
-    BTD("send pskey\n");
+    BTD("send pskey");
     size = get_pskey_buf(data);
     buf = bt_hci_cmd_create(BT_HCI_OP_PSKEY, size);
     net_buf_add_mem(buf, data, size);
     bt_hci_cmd_send_sync(BT_HCI_OP_PSKEY, buf, &rsp);
     net_buf_unref(rsp);
 
-    BTD("send rfkey\n");
+    BTD("send rfkey");
     size = marlin3_rf_preload(data);
     buf = bt_hci_cmd_create(BT_HCI_OP_RF, size);
     net_buf_add_mem(buf, data, size);
     bt_hci_cmd_send_sync(BT_HCI_OP_RF, buf, &rsp);
     net_buf_unref(rsp);
 
-    BTD("send enable\n");
+    BTD("send enable");
     size = get_enable_buf(data);
     buf = bt_hci_cmd_create(BT_HCI_OP_ENABLE_CMD, size);
     net_buf_add_mem(buf, data, size);

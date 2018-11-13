@@ -20,7 +20,7 @@
 #include "uki_utlis.h"
 
 int vendor_log_level = LOG_LEVEL_INFO;
-int stack_log_level = LOG_LEVEL_DEBUG;
+int stack_log_level = LOG_LEVEL_INFO;
 
 void uki_hexdump(char *tag, unsigned char *bin, size_t binsz)
 {
@@ -70,6 +70,45 @@ void uki_hex_dump_block(char *tag, unsigned char *bin, size_t binsz)
 		uki_hexdump(tag, bin + i * HEX_DUMP_BLOCK_SIZE, tail);
 }
 
+void uki_str2hex(u8_t *dst, u8_t *src, size_t size)
+{
+    int len;
+    int i, j;
+    u8_t c;
+
+    len = strlen(src);
+    if (len > size * 2) {
+        BTE("Invalid hex string.\n");
+        return;
+    }
+
+    for (i = 0, j = 0; i < len; i++) {
+        c = *src;
+
+        /*  0 - 9 */
+        if (c >= '0' && c <= '9')
+            c -= '0';
+        else if (c >= 'A' && c <= 'F')
+            c = c - 'A' + 10;
+        else if (c >= 'a' && c <= 'f')
+            c = c - 'a' + 10;
+        else {
+            BTE("Invalid hex string.\n");
+            return;
+        }
+
+        if (!j) {
+            dst[i / 2] = c << 4;
+            j++;
+        } else {
+            dst[i / 2] |= c;
+            j--;
+        }
+
+        src++;
+    }
+}
+
 void uki_hex_dump_block_ex(unsigned char type, char *tag, unsigned char *bin, size_t binsz)
 {
 	int loop = binsz / HEX_DUMP_BLOCK_SIZE;
@@ -90,3 +129,4 @@ void uki_hex_dump_block_ex(unsigned char type, char *tag, unsigned char *bin, si
 	if (tail)
 		uki_hexdump(tag, bin + i * HEX_DUMP_BLOCK_SIZE, tail);
 }
+
