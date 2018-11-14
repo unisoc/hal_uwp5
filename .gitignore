@@ -15,6 +15,7 @@
 # Precompiled Headers
 *.gch
 *.pch
+bt_configure.h
 
 # Libraries
 *.lib
