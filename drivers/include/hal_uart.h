@@ -125,12 +125,12 @@ extern "C" {
 
 static inline u32_t malin_uart_rx_ready(volatile struct uwp_uart *uart)
 {
-	return uart->sts1.rxf_cnt > 0 ? 1 : 0;
+	return (uart->sts0 >> UART_RXF_FULL) & 0x1;
 }
 
 static inline u32_t malin_uart_tx_ready(volatile struct uwp_uart *uart)
 {
-	return uart->sts1.txf_cnt < MAX_TX_COUNT ? 1 : 0;
+	return (uart->sts0 >> UART_TXF_EMPTY) & 0x1;
 }
 
 static inline u8_t uwp_uart_read(volatile struct uwp_uart *uart)

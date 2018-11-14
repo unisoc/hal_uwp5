@@ -31,8 +31,6 @@ extern "C" {
 #define REG_AON_IRQ_DISABLE		(BASE_AON_INTC + 0xC)
 #define REG_AON_IRQ_SOFT		(BASE_AON_INTC + 0x10)
 
-
-
 #define INTC_MAX_CHANNEL    (32)
 #define INT_EIC         0
 #define INT_SOFT		1
@@ -43,92 +41,42 @@ extern "C" {
 #define AON_INT_IRQ_REQ_BB_TS  11
 #define AON_INT_UART	12
 
-	static inline void uwp_irq_enable(u32_t channel)
+	struct uwp_intc {
+		u32_t mask_sts;
+		u32_t raw_sts;
+		u32_t enable;
+		u32_t disable;
+		u32_t irq_soft;
+		u32_t test_src;
+		u32_t test_sel;
+		u32_t reserved;
+	};
+
+	static inline void uwp_intc_enable(volatile struct uwp_intc *intc, u32_t ch)
 	{
-		sci_reg_or(REG_IRQ_ENABLE, BIT(channel));
+		intc->enable |= BIT(ch);
 	}
 
-	static inline void uwp_irq_disable(u32_t channel)
+	static inline void uwp_intc_disable(volatile struct uwp_intc *intc, u32_t ch)
 	{
-		sci_reg_or(REG_IRQ_DISABLE, BIT(channel));
+		intc->disable |= BIT(ch);
 	}
 
-	static inline u32_t uwp_irq_status(u32_t channel)
+	static inline u32_t uwp_intc_status(volatile struct uwp_intc *intc)
 	{
-		u32_t reg;
-
-		reg = sci_read32(REG_IRQ_RAW_STS);
-
-		return (reg >> channel) & 0x1;
+		return intc->raw_sts;
 	}
 
-	static inline void uwp_irq_trigger_soft(void)
+	static inline void uwp_intc_trigger_soft(volatile struct uwp_intc *intc)
 	{
-		sci_write32(REG_IRQ_SOFT, BIT(INT_SOFT));
+		intc->irq_soft |= BIT(INT_SOFT);
 	}
 
-	static inline void uwp_irq_clear_soft(void)
+	static inline void uwp_intc_clear_soft(volatile struct uwp_intc *intc)
 	{
-		sci_write32(REG_IRQ_SOFT, ~BIT(INT_SOFT));
+		intc->irq_soft &= ~BIT(INT_SOFT);
 	}
 
-	static inline void uwp_fiq_enable(u32_t channel)
-	{
-		sci_reg_or(REG_FIQ_ENABLE, BIT(channel));
-	}
-
-	static inline void uwp_fiq_disable(u32_t channel)
-	{
-		sci_reg_or(REG_FIQ_DISABLE, BIT(channel));
-	}
-
-	static inline u32_t uwp_fiq_status(u32_t channel)
-	{
-		u32_t reg;
-
-		reg = sci_read32(REG_FIQ_RAW_STS);
-
-		return (reg >> channel) & 0x1;
-	}
-
-	static inline void uwp_fiq_trigger_soft(void)
-	{
-		sci_write32(REG_FIQ_SOFT, BIT(INT_SOFT));
-	}
-
-	static inline void uwp_fiq_clear_soft(void)
-	{
-		sci_write32(REG_FIQ_SOFT, ~BIT(INT_SOFT));
-	}
-
-	static inline void uwp_aon_irq_enable(u32_t channel)
-	{
-		sci_reg_or(REG_AON_IRQ_ENABLE, BIT(channel));
-	}
-
-	static inline void uwp_aon_irq_disable(u32_t channel)
-	{
-		sci_reg_or(REG_AON_IRQ_DISABLE, BIT(channel));
-	}
-
-	static inline u32_t uwp_aon_irq_status(u32_t channel)
-	{
-		u32_t reg;
-
-		reg = sci_read32(REG_AON_IRQ_RAW_STS);
-
-		return (reg >> channel) & 0x1;
-	}
-
-	static inline void uwp_aon_irq_trigger_soft(void)
-	{
-		sci_write32(REG_AON_IRQ_SOFT, BIT(INT_SOFT));
-	}
-
-	static inline void uwp_aon_irq_clear_soft(void)
-	{
-		sci_write32(REG_AON_IRQ_SOFT, ~BIT(INT_SOFT));
-	}
 #ifdef __cplusplus
 }
 #endif
