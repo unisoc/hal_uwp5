@@ -11,6 +11,9 @@
 extern "C" {
 #endif
 
+#include <device.h>
+#include <zephyr/types.h>
+
 #include "hal_irq.h"
 #include "hal_base.h"
 #include "hal_sys.h"
@@ -25,6 +28,11 @@ extern "C" {
 #include "hal_aon_clk.h"
 #include "hal_aon_glb.h"
 #include "hal_soc.h"
+
+#include "hal_pin_reg.h"
+#include "hal_pinmux.h"
+#include "hal_pinmap.h"
+#include "hal_pinmux_api.h"
 
 #define TRUE   (1)
 #define FALSE  (0)

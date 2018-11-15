@@ -12,4 +12,5 @@ if(CONFIG_HAS_UWP)
 
 	zephyr_sources_ifdef(CONFIG_USE_UWP_HAL_SFC drivers/src/hal_sfc_phy.c)
 	zephyr_sources_ifdef(CONFIG_USE_UWP_HAL_SFC drivers/src/hal_sfc.c)
+	zephyr_sources_ifdef(CONFIG_PINMUX_UWP drivers/src/hal_pinmux.c)
 endif()

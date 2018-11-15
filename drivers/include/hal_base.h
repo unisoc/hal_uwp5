@@ -46,7 +46,6 @@ extern "C" {
 #define BASE_AON_SFC_CFG        0x40890000
 #define BASE_AON_SFC			0x42000000
 
-
 #define __REG_SET_ADDR(reg)		(reg + 0x1000)
 #define __REG_CLR_ADDR(reg)		(reg + 0x2000)
 
