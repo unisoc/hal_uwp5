@@ -13,7 +13,7 @@ extern "C"
 #define PM_INVALID_VAL 0xffffffff
 #define PM_INVALID_SHORT_VAL 0xffff
 
-static const struct pm_pinfunc_tag pm_func[] = {
+static struct pm_pinfunc_tag pm_func[] = {
 	/*| pin register*/
 	{PIN_PIN_CRTL_REG0, 0x00000000},
 	{PIN_PIN_CRTL_REG1, 0x00000000},
@@ -87,13 +87,14 @@ static const struct pm_pinfunc_tag pm_func[] = {
 	{0xffffffff, 0xffffffff}
 };
 
-static const struct pm_pinfunc_tag pm_default_global_map[] = {
+static struct pm_pinfunc_tag pm_default_global_map[] = {
 	{0xffffffff, 0xffffffff}
 };
 
 int uwp_pinmux_init(struct device *dev)
 {
 	int i = 0;
+
 	__pin_enbable(TRUE);
 	for ( ; ; ) {
 		struct pm_pinfunc_tag *p_func = &pm_func[i];
@@ -130,8 +131,3 @@ int uwp_pinmux_init(struct device *dev)
 #ifdef __cpluscplus
 }
 #endif
-
-
-
-
-
