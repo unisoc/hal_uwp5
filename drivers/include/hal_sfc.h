@@ -96,6 +96,7 @@ extern "C" {
 		int (*reset) (void);
 		int (*suspend) (struct spi_flash * flash);
 		int (*resume) (struct spi_flash * flash);
+		int (*wren)(struct spi_flash *flash);
 		int (*lock) (struct spi_flash * flash, u32_t offset, u32_t len);
 		int (*unlock) (struct spi_flash * flash, u32_t offset, u32_t len);
 		int (*set_4io) (struct spi_flash * flash, u32_t op);

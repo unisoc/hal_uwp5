@@ -296,8 +296,8 @@ LOCK_PATTERN_E spiflash_get_lock_pattern(u32_t start_addr, u32_t size,
 					 const struct spi_flash_lock_desc
 					 *lock_table, u32_t lock_table_size);
 BYTE_NUM_E spi_flash_addr(u32_t * addr, u32_t support_4addr);
-int spiflash_cmd_poll_bit(struct spi_flash *flash, unsigned long timeout,
-			  u8_t cmd, u32_t poll_bit, u32_t bit_value);
+__ramfunc int spiflash_cmd_poll_bit(struct spi_flash *flash,
+	unsigned long timeout, u8_t cmd, u32_t poll_bit, u32_t bit_value);
 int spiflash_cmd_wait_ready(struct spi_flash *flash, unsigned long timeout);
 int spiflash_cmd_erase(struct spi_flash *flash, u8_t erase_cmd, u32_t offset);
 int spiflash_cmd_program(struct spi_flash *flash, u32_t offset, u32_t len,
@@ -333,8 +333,8 @@ void spi_read_data(struct spi_flash *flash, void *data_in, u32_t data_len);
 __ramfunc void create_cmd(SFC_CMD_DES_T *cmd_desc_ptr, u32_t cmd,
 		u32_t byte_len, CMD_MODE_E cmd_mode,
 		BIT_MODE_E bit_mode, SEND_MODE_E send_mode);
-void spiflash_set_xip_cmd(struct spi_flash *flash, const u8_t *cmd_read,
-			  u8_t dummy_bytes);
+__ramfunc void spiflash_set_xip_cmd(struct spi_flash *flash,
+		const u8_t *cmd_read, u8_t dummy_bytes);
 
 
 #ifdef __cplusplus

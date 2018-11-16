@@ -8,9 +8,9 @@ static CACHE_BLOCK_OP_T C_ICACHE_DEFAULT_BLOCK_CFG[] = {
 	{ BLOCK_1, 0x00100000, TRUE, FALSE },
 	{ BLOCK_2, 0x001EE000, FALSE, FALSE },
 	{ BLOCK_3, 0x02000000, TRUE, FALSE },
-	{ BLOCK_4, 0x02480000, FALSE, FALSE },
-	{ BLOCK_5, 0x02890000, FALSE, FALSE },
-	{ BLOCK_6, 0x028A0000, FALSE, FALSE },
+	{ BLOCK_4, 0x022C0000, FALSE, FALSE },
+	{ BLOCK_5, 0x02400000, FALSE, FALSE },
+	{ BLOCK_6, 0x02480000, FALSE, FALSE },
 	{ BLOCK_7, 0x028B0000, FALSE, FALSE },
 };
 
@@ -19,9 +19,9 @@ static CACHE_BLOCK_OP_T C_DCACHE_DEFAULT_BLOCK_CFG[] = {
 	{ BLOCK_1, 0x00100000, FALSE, FALSE },
 	{ BLOCK_2, 0x001EE000, FALSE, FALSE },
 	{ BLOCK_3, 0x02000000, TRUE, FALSE },
-	{ BLOCK_4, 0x02480000, FALSE, FALSE },
-	{ BLOCK_5, 0x02890000, FALSE, FALSE },
-	{ BLOCK_6, 0x028A0000, FALSE, FALSE },
+	{ BLOCK_4, 0x022C0000, FALSE, FALSE },
+	{ BLOCK_5, 0x02400000, FALSE, FALSE },
+	{ BLOCK_6, 0x02480000, FALSE, FALSE },
 	{ BLOCK_7, 0x028B0000, FALSE, FALSE },
 };
 
@@ -278,7 +278,7 @@ u32_t cache_execmd(CACHE_CMD_T *cmd, u32_t force)
 		sci_write32(CACHE_CMD_CFG2, value & CACHE_CMD_CFG2_MASK);
 		while (0 == (sci_read32(CACHE_INT_RAW_STS) & CACHE_CMD_IRQ_RAW)) {
 			if (t++ > 100000) {
-				printk("%s %d.\n", __func__, __LINE__);
+				LOG_INF("%s %d.\n", __func__, __LINE__);
 				break;
 			}
 		}
@@ -296,7 +296,7 @@ u32_t cache_enableblock(CACHE_BLOCK_OP_T *pblock, cache_op op)
 	if (C_WRITE == op) {
 		if (pblock->en_cache) {
 			set_bits(0x1 << enable_bit, cache_bus_cfg_addr[0]);
-			return TRUE;
+			return 0;
 		} else {
 			CACHE_CMD_T c;
 			c.type = C_CLEAN_INVALID_RANGE;
@@ -309,13 +309,13 @@ u32_t cache_enableblock(CACHE_BLOCK_OP_T *pblock, cache_op op)
 			cache_execmd(&c, TRUE);
 
 			clr_bits(0x1 << enable_bit, cache_bus_cfg_addr[0]);
-			return FALSE;
+			return -1;
 		}
 	} else {
 		if (sci_read32(cache_bus_cfg_addr[0]) & (0x1 << enable_bit)) {
-			return TRUE;
+			return 0;
 		} else {
-			return FALSE;
+			return -1;
 		}
 	}
 }
@@ -327,16 +327,16 @@ u32_t cache_protblock(CACHE_BLOCK_OP_T *pblock, cache_op op)
 	if (C_WRITE == op) {
 		if (pblock->en_prot) {
 			set_bits(0x1 << enable_bit, cache_bus_cfg_addr[0]);
-			return TRUE;
+			return 0;
 		} else {
 			clr_bits(0x1 << enable_bit, cache_bus_cfg_addr[0]);
-			return FALSE;
+			return -1;
 		}
 	} else {
 		if (sci_read32(cache_bus_cfg_addr[0]) & (0x1 << enable_bit)) {
-			return TRUE;
+			return 0;
 		} else {
-			return FALSE;
+			return -1;
 		}
 	}
 }

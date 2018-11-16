@@ -17,27 +17,27 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 
 void uwp_spi_dump(u32_t arg_in)
 {
-	LOG_INF("dump SFC register:[#### %d ####]\n", arg_in);
+	LOG_ERR("dump SFC register:[#### %d ####]\n", arg_in);
 
-	LOG_INF("SFC_CMD_SET		reg, addr:[%08x], value:[0x%08x]\n",
+	LOG_ERR("SFC_CMD_SET		reg, addr:[%08x], value:[0x%08x]\n",
 		0x40890000, sci_read32(0x40890000));
-	LOG_INF("SFC_SOFT_REQ	reg, addr:[%08x], value:[0x%08x]\n",
+	LOG_ERR("SFC_SOFT_REQ	reg, addr:[%08x], value:[0x%08x]\n",
 		0x40890004, sci_read32(0x40890004));
-	LOG_INF("SFC_CLK_CFG		reg, addr:[%08x], value:[0x%08x]\n",
+	LOG_ERR("SFC_CLK_CFG		reg, addr:[%08x], value:[0x%08x]\n",
 		0x4089001C, sci_read32(0x4089001C));
-	LOG_INF("CS0_CMD_BUF0	reg, addr:[%08x], value:[0x%08x]\n",
+	LOG_ERR("CS0_CMD_BUF0	reg, addr:[%08x], value:[0x%08x]\n",
 		0x40890040, sci_read32(0x40890040));
-	LOG_INF("CS0_TYPE_BUF0	reg, addr:[%08x], value:[0x%08x]\n",
+	LOG_ERR("CS0_TYPE_BUF0	reg, addr:[%08x], value:[0x%08x]\n",
 		0x40890070, sci_read32(0x40890070));
-	LOG_INF("CS0_TYPE_BUF1	reg, addr:[%08x], value:[0x%08x]\n",
+	LOG_ERR("CS0_TYPE_BUF1	reg, addr:[%08x], value:[0x%08x]\n",
 		0x40890074, sci_read32(0x40890074));
-	LOG_INF("CS0_TYPE_BUF2	reg, addr:[%08x], value:[0x%08x]\n",
+	LOG_ERR("CS0_TYPE_BUF2	reg, addr:[%08x], value:[0x%08x]\n",
 		0x40890078, sci_read32(0x40890078));
 
-	LOG_INF("SFC_1X_CFG		reg, addr:[%08x], value:[0x%08x]\n",
+	LOG_ERR("SFC_1X_CFG		reg, addr:[%08x], value:[0x%08x]\n",
 		REG_AON_CLK_RF_CGM_SFC_1X_CFG,
 		sci_read32(REG_AON_CLK_RF_CGM_SFC_1X_CFG));
-	LOG_INF("SFC_2X_CFG		reg, addr:[%08x], value:[0x%08x]\n",
+	LOG_ERR("SFC_2X_CFG		reg, addr:[%08x], value:[0x%08x]\n",
 		REG_AON_CLK_RF_CGM_SFC_2X_CFG,
 		sci_read32(REG_AON_CLK_RF_CGM_SFC_2X_CFG));
 }
@@ -122,7 +122,7 @@ static void spiflash_get_statue(struct spi_flash *flash, u8_t * status1,
 			*status1, *status2);
 }
 
-BYTE_NUM_E spi_flash_addr(u32_t * addr, u32_t support_4addr)
+__ramfunc BYTE_NUM_E spi_flash_addr(u32_t *addr, u32_t support_4addr)
 {
 	u8_t cmd[4] = { 0 };
 	u32_t address = *addr;
@@ -169,7 +169,7 @@ __ramfunc struct spi_flash_params *spiflash_scan(void)
 
 	spiflash_read_write(cmd_desc, 2, (u32_t *) idcode);
 
-	spiflash_select_xip(FALSE);
+	spiflash_select_xip(TRUE);
 
 	LOG_INF("SF: new Got idcode 0: 0x%x 1:0x%x 2:0x%x 3:0x%x 4:0x%x\n",
 			idcode[0], idcode[1], idcode[2], idcode[3], idcode[4]);
@@ -242,7 +242,7 @@ LOCK_PATTERN_E spiflash_get_lock_pattern(u32_t start_addr, u32_t size,
 			[lock_match_index].lock_pattern);
 }
 
-void spiflash_set_xip(SFC_CMD_DES_T * cmd_des_ptr, u32_t cmd_len,
+__ramfunc void spiflash_set_xip(SFC_CMD_DES_T *cmd_des_ptr, u32_t cmd_len,
 		BIT_MODE_E bit_mode)
 {
 	u32_t i;
@@ -263,8 +263,8 @@ void spiflash_set_xip(SFC_CMD_DES_T * cmd_des_ptr, u32_t cmd_len,
 
 }
 
-void spiflash_set_xip_cmd(struct spi_flash *flash, const u8_t *cmd_read,
-		u8_t dummy_bytes)
+__ramfunc void spiflash_set_xip_cmd(struct spi_flash *flash,
+		const u8_t *cmd_read, u8_t dummy_bytes)
 {
 	SFC_CMD_DES_T cmd_desc[5];
 	u32_t cmd_desc_size = 0;
@@ -387,7 +387,7 @@ void spiflash_set_xip_cmd(struct spi_flash *flash, const u8_t *cmd_read,
 	spiflash_set_xip(cmd_desc, cmd_desc_size, bitmode_data);
 }
 
-void spiflash_cmd_read(struct spi_flash *flash, const u8_t * cmd,
+__ramfunc void spiflash_cmd_read(struct spi_flash *flash, const u8_t *cmd,
 		u32_t cmd_len, u32_t address, const void *data_in,
 		u32_t data_len)
 {
@@ -413,43 +413,31 @@ void spiflash_cmd_read(struct spi_flash *flash, const u8_t * cmd,
 	}
 
 	if (data_len > 4) {
-		switch (data_len % 4) {
-			case 1:
-				data_byte_num = BYTE_NUM_1;
-				break;
-			case 2:
-				data_byte_num = BYTE_NUM_2;
-				break;
-			case 3:
-				data_byte_num = BYTE_NUM_3;
-				break;
-			case 0:
-				data_byte_num = BYTE_NUM_4;
-				break;
-			default:
-				break;
-		}
+
+		if (data_len == 1)
+			data_byte_num = BYTE_NUM_1;
+		if (data_len == 2)
+			data_byte_num = BYTE_NUM_2;
+		if (data_len == 3)
+			data_byte_num = BYTE_NUM_3;
+		if (data_len == 0)
+			data_byte_num = BYTE_NUM_4;
+
 		CREATE_CMD_(cmd_desc[cmd_idx++], 0, BYTE_NUM_4, CMD_MODE_READ,
 				bitmode);
 		CREATE_CMD_(cmd_desc[cmd_idx++], 0, data_byte_num,
 				CMD_MODE_READ, bitmode);
 	} else if (data_len > 0) {
-		switch (data_len) {
-			case 1:
-				data_byte_num = BYTE_NUM_1;
-				break;
-			case 2:
-				data_byte_num = BYTE_NUM_2;
-				break;
-			case 3:
-				data_byte_num = BYTE_NUM_3;
-				break;
-			case 0:
-				data_byte_num = BYTE_NUM_4;
-				break;
-			default:
-				break;
-		}
+
+		if (data_len == 1)
+			data_byte_num = BYTE_NUM_1;
+		if (data_len == 2)
+			data_byte_num = BYTE_NUM_2;
+		if (data_len == 3)
+			data_byte_num = BYTE_NUM_3;
+		if (data_len == 0)
+			data_byte_num = BYTE_NUM_4;
+
 		CREATE_CMD_(cmd_desc[cmd_idx++], 0, data_byte_num,
 				CMD_MODE_READ, bitmode);
 	} else {
@@ -459,7 +447,7 @@ void spiflash_cmd_read(struct spi_flash *flash, const u8_t * cmd,
 	spiflash_read_write(cmd_desc, cmd_idx, data_ptr32);
 }
 
-void spiflash_cmd_write(struct spi_flash *flash, const u8_t * cmd,
+__ramfunc void spiflash_cmd_write(struct spi_flash *flash, const u8_t *cmd,
 		u32_t cmd_len, const void *data_out, u32_t data_len)
 {
 	SFC_CMD_DES_T cmd_desc[4];
@@ -531,12 +519,17 @@ void spiflash_cmd_write(struct spi_flash *flash, const u8_t * cmd,
 	spiflash_read_write(cmd_desc, cmd_length, NULL);
 }
 
-int spiflash_cmd_poll_bit(struct spi_flash *flash, unsigned long timeout,
-		u8_t cmd, u32_t poll_bit, u32_t bit_value)
+__ramfunc int spiflash_cmd_poll_bit(struct spi_flash *flash,
+	unsigned long timeout, u8_t cmd, u32_t poll_bit, u32_t bit_value)
 {
 	u32_t status = 0;
 
-	mdelay(5);
+	/* delay 5ms */
+	u32_t count	 = 300000;
+
+	while (--count) {
+		SFCDRV_EnableInt();
+	}
 
 	do {
 		spiflash_cmd_read(flash, &cmd, 1, 0xFFFFFFFF, &status, 1);
@@ -547,19 +540,30 @@ int spiflash_cmd_poll_bit(struct spi_flash *flash, unsigned long timeout,
 			if ((status & poll_bit) == 0)
 				return 0;
 		}
-		mdelay(5);
+
+		/* delay 5ms */
+		count = 30000;
+		while (--count) {
+			SFCDRV_EnableInt();
+		}
+
 	} while (timeout--);
-	LOG_INF("SF: time out!\n");
+
+	spiflash_select_xip(TRUE);
+	LOG_ERR("SF: time out!\n");
+
 	return -1;
 }
 
-int spiflash_cmd_wait_ready(struct spi_flash *flash, unsigned long timeout)
+__ramfunc int spiflash_cmd_wait_ready(struct spi_flash *flash,
+		unsigned long timeout)
 {
 	return spiflash_cmd_poll_bit(flash, timeout, CMD_READ_STATUS1,
 			STATUS_WIP, 0);
 }
 
-int spiflash_cmd_erase(struct spi_flash *flash, u8_t erase_cmd, u32_t offset)
+__ramfunc int spiflash_cmd_erase(struct spi_flash *flash,
+		u8_t erase_cmd, u32_t offset)
 {
 	u32_t addr;
 	u32_t dummp;
@@ -567,6 +571,7 @@ int spiflash_cmd_erase(struct spi_flash *flash, u8_t erase_cmd, u32_t offset)
 	SFC_CMD_DES_T cmd_desc[2];
 	BIT_MODE_E bitmode = BIT_MODE_1;
 	BYTE_NUM_E addr_byte_num = BYTE_NUM_3;
+	unsigned int key;
 
 	if (QPI_MODE == flash->work_mode) {
 		bitmode = BIT_MODE_4;
@@ -577,6 +582,8 @@ int spiflash_cmd_erase(struct spi_flash *flash, u8_t erase_cmd, u32_t offset)
 		LOG_INF("SF: Erase offset/length not multiple of erase size\n");
 		return -1;
 	}
+
+	key = irq_lock();
 
 	ret = spiflash_write_enable(flash);
 	if (ret)
@@ -593,6 +600,10 @@ int spiflash_cmd_erase(struct spi_flash *flash, u8_t erase_cmd, u32_t offset)
 	if (ret)
 		goto out;
 out:
+
+	spiflash_select_xip(TRUE);
+	irq_unlock(key);
+
 	return ret;
 
 }
@@ -701,7 +712,7 @@ __attribute__ ((optimize("-O0"))) spiflash_write_page_sec(struct spi_flash
 	return 0;
 }
 
-static int spiflash_write_page(struct spi_flash *flash,
+__ramfunc static int spiflash_write_page(struct spi_flash *flash,
 		SFC_CMD_DES_T * cmd_des_ptr, u32_t cmd_len,
 		const void *data, u32_t data_len)
 {
@@ -869,7 +880,7 @@ int __attribute__ ((optimize("-O0"))) spiflash_cmd_program_sec(struct spi_flash
 	return ret;
 }
 
-int spiflash_cmd_program(struct spi_flash *flash, u32_t offset,
+__ramfunc int spiflash_cmd_program(struct spi_flash *flash, u32_t offset,
 		u32_t len, const void *buf, u8_t cmd)
 {
 	unsigned long page_addr, page_size;
@@ -879,6 +890,7 @@ int spiflash_cmd_program(struct spi_flash *flash, u32_t offset,
 	BIT_MODE_E bitmode = BIT_MODE_1;
 	u32_t data_len, space_len;
 	int ret = 0;
+	unsigned int key;
 
 	page_size = flash->page_size;
 
@@ -894,9 +906,14 @@ int spiflash_cmd_program(struct spi_flash *flash, u32_t offset,
 		data_len = len - actual;
 		space_len = page_size - byte_addr;
 		chunk_len = min(data_len, space_len);
+
+		key = irq_lock();
+
 		ret = spiflash_write_enable(flash);
 		if (ret < 0) {
-			LOG_INF("SF: enabling write failed\n");
+			spiflash_select_xip(TRUE);
+			irq_unlock(key);
+			LOG_ERR("SF: enabling write failed\n");
 			break;
 		}
 
@@ -912,8 +929,13 @@ int spiflash_cmd_program(struct spi_flash *flash, u32_t offset,
 		ret =
 			spiflash_write_page(flash, cmd_desc, 2,
 					((char *)buf + actual), chunk_len);
+
+
+		spiflash_select_xip(TRUE);
+		irq_unlock(key);
+
 		if (ret < 0) {
-			LOG_INF("SF: write failed\n");
+			LOG_ERR("SF: write failed\n");
 			break;
 		}
 
@@ -923,21 +945,15 @@ int spiflash_cmd_program(struct spi_flash *flash, u32_t offset,
 	return ret;
 }
 
-int spiflash_write_enable(struct spi_flash *flash)
+__ramfunc int spiflash_write_enable(struct spi_flash *flash)
 {
-#if 0
 	u32_t timeout = SPI_FLASH_WEL_TIMEOUT;
-
-	return spiflash_cmd_poll_bit(flash, timeout, CMD_READ_STATUS1,
-			STATUS_WEL, 1);
-#else
 	u8_t cmd = CMD_WRITE_ENABLE;
 
 	spiflash_cmd_write(flash, &cmd, 1, NULL, 0);
 
-	return 0;
-#endif
-
+	return spiflash_cmd_poll_bit(flash, timeout, CMD_READ_STATUS1,
+			STATUS_WEL, 1);
 }
 
 int spiflash_write_disable(struct spi_flash *flash)
@@ -1030,13 +1046,13 @@ int spiflash_write_sec(struct spi_flash *flash, u32_t offset,
 			CMD_PAGE_PROGRAM);
 }
 
-int spiflash_write(struct spi_flash *flash, u32_t offset,
+__ramfunc int spiflash_write(struct spi_flash *flash, u32_t offset,
 		u32_t len, const void *buf)
 {
 	return spiflash_cmd_program(flash, offset, len, buf, CMD_PAGE_PROGRAM);
 }
 
-int spiflash_erase(struct spi_flash *flash, u32_t offset, u32_t len)
+__ramfunc int spiflash_erase(struct spi_flash *flash, u32_t offset, u32_t len)
 {
 	u32_t i, sectors_nr;
 
@@ -1066,7 +1082,7 @@ int spiflash_resume(struct spi_flash *flash)
 	return 0;
 }
 
-int spiflash_erase_chip(struct spi_flash *flash)
+__ramfunc int spiflash_erase_chip(struct spi_flash *flash)
 {
 	u8_t cmd = CMD_CHIP_ERASE;
 
@@ -1079,7 +1095,7 @@ int spiflash_erase_chip(struct spi_flash *flash)
 u32_t spiflash_read_common(struct spi_flash * flash, u32_t offset)
 {
 	/* size: 4MB base: 0x200_0000 */
-	return 0x2000000 + offset;
+	return offset;
 }
 
 int spiflash_read_data_xip(struct spi_flash *flash, u32_t offset,
@@ -1088,41 +1104,42 @@ int spiflash_read_data_xip(struct spi_flash *flash, u32_t offset,
 	u8_t cmd;
 	u32_t off_cmd;
 
+
 	switch (type) {
 		case READ_SPI:
 			if (SPI_MODE != flash->work_mode)
-				return FALSE;
+				return -1;
 			cmd = CMD_NORMAL_READ;
 			flash->spi_rw_mode = RD_CMD_1BIT | RD_ADDR_1BIT | RD_DATA_1BIT;
 			break;
 		case READ_SPI_FAST:
 			if (SPI_MODE != flash->work_mode)
-				return FALSE;
+				return -1;
 			cmd = CMD_FAST_READ;
 			flash->spi_rw_mode =
 				RD_CMD_1BIT | RD_ADDR_1BIT | RD_DUMY_1BIT | RD_DATA_1BIT;
 			break;
 		case READ_SPI_2IO:
 			if (SPI_MODE != flash->work_mode)
-				return FALSE;
+				return -1;
 			cmd = CMD_2IO_READ;
 			flash->spi_rw_mode =
 				RD_CMD_1BIT | RD_ADDR_2BIT | RD_DUMY_2BIT | RD_DATA_2BIT;
 			break;
 		case READ_SPI_4IO:
 			if (SPI_MODE != flash->work_mode)
-				return FALSE;
+				return -1;
 			cmd = CMD_4IO_READ;
 			flash->spi_rw_mode =
 				RD_CMD_1BIT | RD_ADDR_4BIT | RD_DUMY_4BIT | RD_DATA_4BIT;
 			break;
 		case READ_QPI_4IO:
 			if (QPI_MODE != flash->work_mode)
-				return FALSE;
+				return -1;
 			cmd = CMD_4IO_READ;
 			break;
 		default:
-			return FALSE;
+			return -1;
 	}
 
 	off_cmd = offset << 8 | cmd;
@@ -1143,38 +1160,38 @@ int spiflash_read_data_noxip(struct spi_flash *flash, u32_t address,
 	switch (type) {
 		case READ_SPI:
 			if (SPI_MODE != flash->work_mode)
-				return FALSE;
+				return -1;
 			cmd[0] = CMD_NORMAL_READ;
 			flash->spi_rw_mode = RD_CMD_1BIT | RD_ADDR_1BIT | RD_DATA_1BIT;
 			break;
 		case READ_SPI_FAST:
 			if (SPI_MODE != flash->work_mode)
-				return FALSE;
+				return -1;
 			cmd[0] = CMD_FAST_READ;
 			flash->spi_rw_mode =
 				RD_CMD_1BIT | RD_ADDR_1BIT | RD_DUMY_1BIT | RD_DATA_1BIT;
 			break;
 		case READ_SPI_2IO:
 			if (SPI_MODE != flash->work_mode)
-				return FALSE;
+				return -1;
 			cmd[0] = CMD_2IO_READ;
 			flash->spi_rw_mode =
 				RD_CMD_1BIT | RD_ADDR_2BIT | RD_DUMY_2BIT | RD_DATA_2BIT;
 			break;
 		case READ_SPI_4IO:
 			if (SPI_MODE != flash->work_mode)
-				return FALSE;
+				return -1;
 			cmd[0] = CMD_4IO_READ;
 			flash->spi_rw_mode =
 				RD_CMD_1BIT | RD_ADDR_4BIT | RD_DUMY_4BIT | RD_DATA_4BIT;
 			break;
 		case READ_QPI_4IO:
 			if (QPI_MODE != flash->work_mode)
-				return FALSE;
+				return -1;
 			cmd[0] = CMD_4IO_READ;
 			break;
 		default:
-			return FALSE;
+			return -1;
 	}
 
 	pbuf = (u8_t *)buf;
@@ -1193,7 +1210,7 @@ int spiflash_read_data_noxip(struct spi_flash *flash, u32_t address,
 static int spiflash_set_encrypt(u32_t op)
 {
 	SFCDRV_SetCMDEncryptCfgReg(op);
-	return TRUE;
+	return 0;
 }
 
 static int spiflash_change_4io(struct spi_flash *flash, u32_t op)
@@ -1266,10 +1283,37 @@ static int spiflash_set_qpi(struct spi_flash *flash, u32_t op)
 	}
 }
 
-__ramfunc static void spiflash_enter_xip(void)
+static int spiflash_read(struct spi_flash *flash, u32_t offset,
+		u32_t *buf, u32_t len, READ_CMD_TYPE_E type)
+{
+
+	int ret = TRUE;
+
+#ifndef CONFIG_W25_READONLY
+
+	u8_t dump_byte = 1;
+	u32_t read_char = 0;
+
+	/* modify for xip-sfc */
+
+	ret = spiflash_read_data_xip(flash, offset, (u32_t *) &read_char,
+				     dump_byte, type);
+
+
+	memcpy((char *)buf, (char *)read_char, len);
+
+#else
+	LOG_INF("defined CONFIG_W25_READONLY\n");
+	memcpy((char *)buf, (char *)(offset), len);
+#endif
+
+	return ret;
+}
+
+__ramfunc static void spiflash_exit_xip(void)
 {
 	/* pin mux and drive configuration */
-	sci_write32(0x40840038, 0x4100);
+	sci_write32(PIN_ESMCLK_REG, 0x4100);
 
 	sci_write32(SFC_CMD_CFG, 0x00);
 	sci_write32(SFC_CMD_BUF0, 0x06);
@@ -1278,7 +1322,7 @@ __ramfunc static void spiflash_enter_xip(void)
 	sci_write32(SFC_TYPE_BUF2, 0x00000000);
 }
 
-__ramfunc static void spiflash_exit_xip(void)
+__ramfunc static void spiflash_enter_xip(void)
 {
 	sci_write32(SFC_CMD_CFG, 0x01);
 	sci_write32(SFC_CMD_BUF0, 0x0b);
@@ -1357,13 +1401,14 @@ __ramfunc int uwp_spi_flash_init(struct spi_flash *flash,
 	flash->read_sec = spiflash_read_data_xip;
 	flash->write_sec = spiflash_write_sec;
 	/* flash.read_noxip = spiflash_read_data_noxip; */
-	flash->read = spiflash_read_data_xip;
+	flash->read = spiflash_read;
 	flash->write = spiflash_write;
 	flash->erase = spiflash_erase;
 	flash->erase_chip = spiflash_erase_chip;
 	flash->reset = spiflash_reset_anyway;
 	flash->suspend = spiflash_suspend;
 	flash->resume = spiflash_resume;
+	flash->wren = spiflash_write_enable;
 	flash->lock = spiflash_lock;
 	flash->unlock = spiflash_unlock;
 	flash->set_4io = spiflash_change_4io;
