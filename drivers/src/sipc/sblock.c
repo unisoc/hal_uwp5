@@ -393,7 +393,7 @@ void sblock_put(u8_t dst, u8_t channel, struct sblock *blk)
 		wakeup_smsg_task_all(&(ring->getwait));
 	}
 
-	index = sblock_get_index((blk->addr - ring->txblk_virt),
+	index = sblock_get_index(((u32_t)blk->addr - (u32_t)ring->txblk_virt),
 	sblock->txblksz);
 	ring->txrecord[index] = SBLOCK_BLK_STATE_DONE;
 }
