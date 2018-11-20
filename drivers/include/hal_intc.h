@@ -64,7 +64,7 @@ extern "C" {
 
 	static inline u32_t uwp_intc_status(volatile struct uwp_intc *intc)
 	{
-		return intc->raw_sts;
+		return intc->mask_sts;
 	}
 
 	static inline void uwp_intc_trigger_soft(volatile struct uwp_intc *intc)
