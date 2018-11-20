@@ -123,12 +123,12 @@ extern "C" {
 		dspwait_t	dspwait;
 	};
 
-static inline u32_t malin_uart_rx_ready(volatile struct uwp_uart *uart)
+static inline u32_t uwp_uart_rx_ready(volatile struct uwp_uart *uart)
 {
 	return (uart->sts0 >> UART_RXF_FULL) & 0x1;
 }
 
-static inline u32_t malin_uart_tx_ready(volatile struct uwp_uart *uart)
+static inline u32_t uwp_uart_tx_ready(volatile struct uwp_uart *uart)
 {
 	return (uart->sts0 >> UART_TXF_EMPTY) & 0x1;
 }
