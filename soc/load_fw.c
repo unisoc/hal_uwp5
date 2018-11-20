@@ -25,16 +25,6 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 #define CP_RUNNING_BIT  0
 #define CP_WIFI_RUNNING_BIT     1
 
-#ifdef CONFIG_USE_UWP_HAL_SRAM
-#define DELAY(time) \
-do { \
-	unsigned int delay_time; \
-	for (delay_time = 0; delay_time < (time * 208); delay_time++) { \
-		*(volatile unsigned int *)0x100000; \
-	} \
-} while (0)
-#endif /* CONFIG_USE_UWP_HAL_SRAM */
-
 extern void GNSS_Start(void);
 
 int move_cp(char *src, char *dst, uint32_t size)
@@ -167,7 +157,6 @@ int cp_check_running(void)
 		}
 		k_sleep(30);
 	} while (cnt-- > 0);
-	// }while(1);
 
 	return -1;
 }
@@ -202,7 +191,7 @@ static void cp_sram_init(void)
 	val = sys_read32(0x40130004); /* enable */
 	val |= 0x220;
 	sys_write32(val, 0x40130004);
-	DELAY(1000);
+	k_sleep(50);
 
 	val = sys_read32(0x4083c088); /* power on WRAP */
 	val &= ~(0x2);

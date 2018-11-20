@@ -13,9 +13,10 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 #include <init.h>
 #include <string.h>
 #include <uwp_hal.h>
+#include <irq_nextlevel.h>
+
 #include "sipc.h"
 #include "sipc_priv.h"
-#include "intc_uwp.h"
 
 #if defined(CONFIG_BT_CTLR_WORKER_PRIO)
 #define RADIO_TICKER_USER_ID_WORKER_PRIO CONFIG_BT_CTLR_WORKER_PRIO
@@ -319,6 +320,20 @@ static int wifi_int_irq_handler(void *arg)
 
 int wifi_irq_init(void)
 {
+	struct device *aon_int_dev;
+
+	aon_int_dev = device_get_binding(CONFIG_UWP_ICTL_2_NAME);
+	if (aon_int_dev == NULL) {
+		printk("Can not find device: %s.\n",
+				CONFIG_UWP_ICTL_2_NAME);
+		return -1;
+	}
+
+	IRQ_CONNECT(0x0C14, 5,
+				wifi_aon_irq_handler,
+				(void *)AON_INT_IRQ_REQ_BB_TS, 0);
+	irq_enable_next_level(aon_int_dev, AON_INT_IRQ_REQ_BB_TS);
+
 	IRQ_CONNECT(NVIC_INT_MAC, 5, wifi_int_irq_handler,
 		NVIC_INT_MAC, 0);
 	IRQ_CONNECT(NVIC_INT_REQ_WIFI_CAP, 5, wifi_int_irq_handler,
@@ -327,7 +342,5 @@ int wifi_irq_init(void)
 		NVIC_INT_DPD, 0);
 	IRQ_CONNECT(NVIC_INT_REQ_COM_TMR, 5, wifi_int_irq_handler,
 		NVIC_INT_REQ_COM_TMR, 0);
-	uwp_aon_intc_set_irq_callback(AON_INT_IRQ_REQ_BB_TS,
-		wifi_aon_irq_handler, (void *)AON_INT_IRQ_REQ_BB_TS);
 	return 0;
 }

@@ -8,9 +8,11 @@
 LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 
 #include <zephyr.h>
+#include <kernel.h>
+#include <device.h>
+#include <init.h>
 #include <uwp_hal.h>
 #include <string.h>
-#include <ipi_uwp.h>
 
 #include "sipc.h"
 #include "sipc_priv.h"
@@ -190,13 +192,6 @@ int smsg_msg_dispatch_thread(int argc, char *argv[])
 
 }
 
-static void smsg_irq_handler(void *arg)
-{
-	struct smsg_ipc *ipc = (struct smsg_ipc *)arg;
-
-	k_sem_give(&ipc->irq_sem);
-}
-
 int smsg_ipc_destroy(u8_t dst)
 {
 	struct smsg_ipc *ipc = &smsg_ipcs[dst];
@@ -296,7 +291,7 @@ int smsg_send_irq(u8_t dst, struct smsg *msg)
 
 	/* update wrptr */
 	sys_write32(sys_read32(tx_buf->wrptr) + 1, tx_buf->wrptr);
-	uwp_ipi_irq_trigger();
+	uwp_ipi_trigger(IPI_CORE_BTWF, IPI_TYPE_IRQ0);
 
 send_failed:
 	return ret;
@@ -357,9 +352,22 @@ int smsg_send(u8_t dst, u8_t prio, struct smsg *msg, int timeout)
 	sys_write32(sys_read32(tx_buf->wrptr) + 1, tx_buf->wrptr);
 	k_mutex_unlock(&ch->txlock);
 
-	uwp_ipi_irq_trigger();
+	uwp_ipi_trigger(IPI_CORE_BTWF, IPI_TYPE_IRQ0);
 
 	return ret;
+}
+
+static void smsg_irq_handler(void *arg)
+{
+	struct smsg_ipc *ipc = &smsg_ipcs[0];
+
+	irq_disable(NVIC_INT_GNSS2BTWF_IPI);
+
+	uwp_ipi_clear_remote(IPI_CORE_BTWF, IPI_TYPE_IRQ0);
+
+	k_sem_give(&ipc->irq_sem);
+
+	irq_enable(NVIC_INT_GNSS2BTWF_IPI);
 }
 
 int smsg_init(u32_t dst, u32_t smsg_base)
@@ -368,13 +376,17 @@ int smsg_init(u32_t dst, u32_t smsg_base)
 
 	LOG_INF("smsg init dst %d addr 0x%x.", dst, smsg_base);
 
-	smsg_set_addr(ipc, smsg_base);
+	uwp_sys_enable(BIT(APB_EB_IPI));
+	uwp_sys_reset(BIT(APB_EB_IPI));
+	IRQ_CONNECT(NVIC_INT_GNSS2BTWF_IPI, 5,
+				smsg_irq_handler,
+				NVIC_INT_GNSS2BTWF_IPI, 0);
+	irq_enable(NVIC_INT_GNSS2BTWF_IPI);
 
+	smsg_set_addr(ipc, smsg_base);
 	smsg_clear_queue(ipc, QUEUE_PRIO_NORMAL);
 	smsg_clear_queue(ipc, QUEUE_PRIO_HIGH);
 	smsg_clear_queue(ipc, QUEUE_PRIO_IRQ);
-
-	uwp_ipi_set_callback(smsg_irq_handler, (void *)ipc);
 
 	k_sem_init(&ipc->irq_sem, 0, 1);
 
