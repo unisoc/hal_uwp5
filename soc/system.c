@@ -10,7 +10,7 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 #include <zephyr.h>
 #include <uwp_hal.h>
 
-void uwp_glb_init(void)
+void uwp_clock_init(void)
 {
 	/* Set system clock to 416M */
 	/* 0x40088018 */
@@ -38,3 +38,8 @@ void uwp_glb_init(void)
 }
 
 
+void uwp_glb_init(void)
+{
+	uwp_clock_init();
+	uwp_cache_init();
+}
