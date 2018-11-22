@@ -490,7 +490,7 @@ extern "C" {
 	__ramfunc void SFCDREV_Req(void);
 	__ramfunc void SFCDRV_GetReadBuf(u32_t *buffer, u32_t word_cnt);
 	void SFCDRV_GetBuf(void *buffer, u32_t nbytes);
-	__ramfunc void SFCDRV_EnableInt(void);
+	__ramfunc void SFCDRV_IntCfg(u32_t op);
 	__ramfunc void SFCDRV_ClkCfg(u32_t value);
 	__ramfunc void SFCDRV_Req(void);
 

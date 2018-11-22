@@ -448,9 +448,13 @@ __ramfunc void SFCDRV_ResetAllBuf(void)
 	read_buf_index = SFCDRV_GetInitAddr();
 }
 
-__ramfunc void SFCDRV_EnableInt(void)
+__ramfunc void SFCDRV_IntCfg(u32_t op)
 {
-	*((volatile u32_t *)SFC_IEN) = 0xFF;
+	if (op == TRUE) {
+		*((volatile u32_t *)SFC_IEN) = 0xFF;
+	} else {
+		*((volatile u32_t *)SFC_IEN) = 0x00;
+	}
 }
 
 __ramfunc void SFCDRV_Req(void)
@@ -462,7 +466,7 @@ __ramfunc void SFCDRV_Req(void)
 	while (!(SFC_IDLE_STATUS & SFCDRV_GetStatus())) {
 	};
 #else
-	while (0 == (*((volatile u32_t *)SFC_INT_STS))) {
+	while (0 == (*((volatile u32_t *)SFC_INT_RAW))) {
 	};
 #endif
 }

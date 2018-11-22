@@ -107,10 +107,11 @@ void spiflash_read_write_sec(SFC_CMD_DES_T * cmd_des_ptr, u32_t cmd_len)
 	SFCDRV_SetCMDEncryptCfgReg(0);
 }
 
-static void spiflash_get_statue(struct spi_flash *flash, u8_t * status1,
-		u8_t * status2)
+__ramfunc static void spiflash_get_status(struct spi_flash *flash,
+		u8_t *status1, u8_t *status2)
 {
 	u8_t cmd = 0;
+	printk("\n[%s] == SF: spiflash status: ", __func__);
 
 	cmd = CMD_READ_STATUS1;
 	spiflash_cmd_read(flash, &cmd, 1, 0xFFFFFFFF, status1, 1);
@@ -118,8 +119,8 @@ static void spiflash_get_statue(struct spi_flash *flash, u8_t * status1,
 	cmd = CMD_READ_STATUS2;
 	spiflash_cmd_read(flash, &cmd, 1, 0xFFFFFFFF, status2, 1);
 
-	LOG_INF("SF: spiflash status: status 1 = 0x%x, status2 = 0x%x\n",
-			*status1, *status2);
+	spiflash_select_xip(TRUE);
+	printk("status 1 = 0x%x, status2 = 0x%x\n", *status1, *status2);
 }
 
 __ramfunc BYTE_NUM_E spi_flash_addr(u32_t *addr, u32_t support_4addr)
@@ -528,7 +529,7 @@ __ramfunc int spiflash_cmd_poll_bit(struct spi_flash *flash,
 	u32_t count	 = 300000;
 
 	while (--count) {
-		SFCDRV_EnableInt();
+		SFCDRV_IntClr();
 	}
 
 	do {
@@ -544,7 +545,7 @@ __ramfunc int spiflash_cmd_poll_bit(struct spi_flash *flash,
 		/* delay 5ms */
 		count = 30000;
 		while (--count) {
-			SFCDRV_EnableInt();
+			SFCDRV_IntClr();
 		}
 
 	} while (timeout--);
@@ -972,16 +973,19 @@ int spiflash_write_disable(struct spi_flash *flash)
 	return 0;
 }
 
-int spiflash_lock(struct spi_flash *flash, u32_t offset, u32_t len)
+__ramfunc int spiflash_lock(struct spi_flash *flash, u32_t offset, u32_t len)
 {
 	u8_t cmd;
 	u8_t status1 = 0, status2 = 0;
 	int dout = 0;
+	int ret = 0;
+	unsigned int key;
 
 	offset = 0;
 	len = 0;
 
-	spiflash_get_statue(flash, &status1, &status2);
+	spiflash_get_status(flash, &status1, &status2);
+	key = irq_lock();
 	spiflash_write_enable(flash);
 
 	cmd = CMD_WRITE_STATUS;
@@ -989,19 +993,27 @@ int spiflash_lock(struct spi_flash *flash, u32_t offset, u32_t len)
 
 	spiflash_cmd_write(flash, &cmd, 1, &dout, 2);
 
-	return spiflash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
+	ret = spiflash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
+
+	spiflash_select_xip(TRUE);
+	irq_unlock(key);
+
+	return ret;
 }
 
-int spiflash_unlock(struct spi_flash *flash, u32_t offset, u32_t len)
+__ramfunc int spiflash_unlock(struct spi_flash *flash, u32_t offset, u32_t len)
 {
 	u8_t cmd;
 	u8_t status1 = 0, status2 = 0;
 	int dout = 0;
+	int ret = 0;
+	unsigned int key;
 
 	offset = 0;
 	len = 0;
 
-	spiflash_get_statue(flash, &status1, &status2);
+	spiflash_get_status(flash, &status1, &status2);
+	key = irq_lock();
 	spiflash_write_enable(flash);
 
 	cmd = CMD_WRITE_STATUS;
@@ -1009,8 +1021,12 @@ int spiflash_unlock(struct spi_flash *flash, u32_t offset, u32_t len)
 
 	spiflash_cmd_write(flash, &cmd, 1, &dout, 2);
 
-	return spiflash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
+	ret = spiflash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
 
+	spiflash_select_xip(TRUE);
+	irq_unlock(key);
+
+	return ret;
 }
 
 __ramfunc int spiflash_reset_anyway(void)
@@ -1084,12 +1100,21 @@ int spiflash_resume(struct spi_flash *flash)
 
 __ramfunc int spiflash_erase_chip(struct spi_flash *flash)
 {
+	int ret = 0;
+	unsigned int key;
+
 	u8_t cmd = CMD_CHIP_ERASE;
 
+	key = irq_lock();
 	spiflash_write_enable(flash);
 	spiflash_cmd_write(flash, &cmd, 1, NULL, 0);
 
-	return spiflash_cmd_wait_ready(flash, SPI_FLASH_CHIP_ERASE_TIMEOUT);
+	ret = spiflash_cmd_wait_ready(flash, SPI_FLASH_CHIP_ERASE_TIMEOUT);
+
+	spiflash_select_xip(TRUE);
+	irq_unlock(key);
+
+	return ret;
 }
 
 u32_t spiflash_read_common(struct spi_flash * flash, u32_t offset)
@@ -1218,8 +1243,11 @@ static int spiflash_change_4io(struct spi_flash *flash, u32_t op)
 	u32_t dout = 0;
 	u8_t status1 = 0, status2 = 0;
 	u8_t cmd = 0;
+	int ret = 0;
+	unsigned int key;
 
-	spiflash_get_statue(flash, &status1, &status2);
+	spiflash_get_status(flash, &status1, &status2);
+	key = irq_lock();
 	spiflash_write_enable(flash);
 	cmd = CMD_WRITE_STATUS;
 	if (op == TRUE) {
@@ -1230,7 +1258,12 @@ static int spiflash_change_4io(struct spi_flash *flash, u32_t op)
 
 	spiflash_cmd_write(flash, &cmd, 1, &dout, 2);
 
-	return spiflash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
+	ret = spiflash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
+
+	spiflash_select_xip(TRUE);
+	irq_unlock(key);
+
+	return ret;
 }
 
 static int spiflash_enter_qpi(struct spi_flash *flash)
