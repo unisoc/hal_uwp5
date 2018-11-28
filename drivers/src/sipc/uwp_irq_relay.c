@@ -235,34 +235,11 @@ int sprd_bt_irq_init(void)
 	return 0;
 }
 
-/*wifi irq register enable request dis*/
-void sprd_wifi_irq_enable(void)
-{
-	irq_enable(NVIC_INT_MAC);
-	irq_enable(NVIC_INT_REQ_WIFI_CAP);
-	irq_enable(NVIC_INT_DPD);
-	irq_enable(NVIC_INT_REQ_COM_TMR);
-}
-
-void sprd_wifi_irq_disable(void)
-{
-	irq_disable(NVIC_INT_MAC);
-	irq_disable(NVIC_INT_REQ_WIFI_CAP);
-	irq_disable(NVIC_INT_DPD);
-	irq_disable(NVIC_INT_REQ_COM_TMR);
-}
-
 void sprd_wifi_irq_enable_num(u32_t num)
 {
 	LOG_INF("wifi irq enable %d\n", num);
 
 	switch (num) {
-	case NVIC_INT_MAC:
-		irq_enable(NVIC_INT_MAC);
-	break;
-	case NVIC_INT_REQ_COM_TMR:
-		irq_enable(NVIC_INT_REQ_COM_TMR);
-	break;
 	case NVIC_INT_REQ_WIFI_CAP:
 		irq_enable(NVIC_INT_REQ_WIFI_CAP);
 	break;
@@ -279,12 +256,6 @@ void sprd_wifi_irq_disable_num(u32_t num)
 {
 	LOG_INF("wifi irq enable %d\n", num);
 	switch (num) {
-	case NVIC_INT_MAC:
-		irq_disable(NVIC_INT_MAC);
-	break;
-	case NVIC_INT_REQ_COM_TMR:
-		irq_disable(NVIC_INT_REQ_COM_TMR);
-	break;
 	case NVIC_INT_REQ_WIFI_CAP:
 		irq_disable(NVIC_INT_REQ_WIFI_CAP);
 	break;
@@ -297,16 +268,7 @@ void sprd_wifi_irq_disable_num(u32_t num)
 	}
 
 }
-static void wifi_aon_irq_handler(int ch, void *arg)
-{
-	struct smsg msg;
-	s32_t irq = (s32_t)arg;
 
-	LOG_INF("wifi irq aon %d\n", irq);
-	smsg_set(&msg, SMSG_CH_IRQ_DIS, SMSG_TYPE_EVENT, 0, (irq + 50));
-	smsg_send_irq(SIPC_ID_AP, &msg);
-
-}
 static int wifi_int_irq_handler(void *arg)
 {
 	struct smsg msg;
@@ -320,27 +282,10 @@ static int wifi_int_irq_handler(void *arg)
 
 int wifi_irq_init(void)
 {
-	struct device *aon_int_dev;
-
-	aon_int_dev = device_get_binding(CONFIG_UWP_ICTL_2_NAME);
-	if (aon_int_dev == NULL) {
-		printk("Can not find device: %s.\n",
-				CONFIG_UWP_ICTL_2_NAME);
-		return -1;
-	}
-
-	IRQ_CONNECT(0x0C14, 5,
-				wifi_aon_irq_handler,
-				(void *)AON_INT_IRQ_REQ_BB_TS, 0);
-	irq_enable_next_level(aon_int_dev, AON_INT_IRQ_REQ_BB_TS);
-
-	IRQ_CONNECT(NVIC_INT_MAC, 5, wifi_int_irq_handler,
-		NVIC_INT_MAC, 0);
-	IRQ_CONNECT(NVIC_INT_REQ_WIFI_CAP, 5, wifi_int_irq_handler,
-		NVIC_INT_REQ_WIFI_CAP, 0);
 	IRQ_CONNECT(NVIC_INT_DPD, 5, wifi_int_irq_handler,
 		NVIC_INT_DPD, 0);
 	IRQ_CONNECT(NVIC_INT_REQ_COM_TMR, 5, wifi_int_irq_handler,
 		NVIC_INT_REQ_COM_TMR, 0);
+
 	return 0;
 }

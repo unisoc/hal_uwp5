@@ -93,9 +93,6 @@ extern "C" {
 #define IPC_RING_ADDR       0x001EF000
 #define IPC_DST             0
 
-int wifi_irq_init(void);
-void sprd_wifi_irq_disable_num(u32_t num);
-void sprd_wifi_irq_enable_num(u32_t num);
 /**
  * smsg_ch_open -- open a channel for smsg
  *
@@ -185,6 +182,8 @@ struct sblock {
 
 extern int sipc_probe(void);
 extern int wifi_irq_init(void);
+extern void sprd_wifi_irq_disable_num(u32_t num);
+extern void sprd_wifi_irq_enable_num(u32_t num);
 
 #ifdef __cplusplus
 }
