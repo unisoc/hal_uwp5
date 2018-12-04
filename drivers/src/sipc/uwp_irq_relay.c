@@ -240,30 +240,27 @@ void sprd_wifi_irq_enable_num(u32_t num)
 	LOG_INF("wifi irq enable %d\n", num);
 
 	switch (num) {
-	case NVIC_INT_REQ_WIFI_CAP:
-		irq_enable(NVIC_INT_REQ_WIFI_CAP);
-	break;
+	case NVIC_INT_REQ_COM_TMR:
 	case NVIC_INT_DPD:
-		irq_enable(NVIC_INT_DPD);
+		irq_enable(num);
 	break;
 	default:
-		LOG_INF("wifi irq enable error num %d\n", num);
+		LOG_WRN("wifi irq enable error num %d\n", num);
 	break;
 	}
 
 }
+
 void sprd_wifi_irq_disable_num(u32_t num)
 {
 	LOG_INF("wifi irq enable %d\n", num);
 	switch (num) {
-	case NVIC_INT_REQ_WIFI_CAP:
-		irq_disable(NVIC_INT_REQ_WIFI_CAP);
-	break;
+	case NVIC_INT_REQ_COM_TMR:
 	case NVIC_INT_DPD:
-		irq_disable(NVIC_INT_DPD);
+		irq_disable(num);
 	break;
 	default:
-		LOG_INF("wifi irq disable error num %d\n", num);
+		LOG_WRN("wifi irq disable error num %d\n", num);
 	break;
 	}
 
