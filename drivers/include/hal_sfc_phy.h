@@ -461,38 +461,37 @@ extern "C" {
 		SEND_MODE_E send_mode;
 	} SFC_CMD_DES_T, *SFC_CMD_DES_PTR;
 
-	void SFCDRV_SetCMDEncryptCfgReg(u32_t cmdmode);
-	void SFCDRV_SetCMDCfgReg(CMD_MODE_E cmdmode, BIT_MODE_E bitmode,
+	void sfcdrv_setcmdencryptcfgreg(u32_t cmdmode);
+	void sfcdrv_setcmdcfgreg(CMD_MODE_E cmdmode, BIT_MODE_E bitmode,
 			INI_ADD_SEL_E iniAddSel);
-	void SFCDRV_SoftReq(void);
-	void SFCDRV_CMD_BufClr(void);
-	void SFCDRV_TypeBufClr(void);
-	void SFCDRV_IntClr(void);
-	u32_t SFCDRV_GetStatus(void);
-	void SFCDRV_CSTimingCfg(u32_t value);
-	void SFCDRV_RDTimingCfg(u32_t value);
-	void SFCDRV_ClkCfg(u32_t value);
-	void SFCDRV_CSCfg(u32_t value);
-	void SFCDRV_EndianCfg(u32_t value);
-	void SFCDRV_SetCMDBuf(CMD_BUF_INDEX_E index, u32_t value);
-	void SFCDRV_SetCMDBufEx(CMD_BUF_INDEX_E index,
+	void sfcdrv_softreq(void);
+	void sfcdrv_CMD_BufClr(void);
+	void sfcdrv_typebufclr(void);
+	void sfcdrv_intclr(void);
+	u32_t sfcdrv_getstatus(void);
+	void sfcdrv_cstimingcfg(u32_t value);
+	void sfcdrv_rdtimingcfg(u32_t value);
+	void sfcdrv_clkcfg(u32_t value);
+	void sfcdrv_cscfg(u32_t value);
+	void sfcdrv_endiancfg(u32_t value);
+	void sfcdrv_setcmdbuf(CMD_BUF_INDEX_E index, u32_t value);
+	void sfcdrv_setcmdbufex(CMD_BUF_INDEX_E index,
 		const u8_t *buf, u32_t count);
-	u32_t SFCDRV_GetCMDBuf(CMD_BUF_INDEX_E index);
-	__ramfunc void SFCDRV_SetTypeInfBuf(CMD_BUF_INDEX_E index,
+	u32_t sfcdrv_getcmdbuf(CMD_BUF_INDEX_E index);
+	__ramfunc void sfcdrv_settypeinfbuf(CMD_BUF_INDEX_E index,
 			BIT_MODE_E bitmode,
 			BYTE_NUM_E bytenum, CMD_MODE_E cmdmode,
 			SEND_MODE_E sendmode);
-	__ramfunc void SFCDRV_ResetAllBuf(void);
-	__ramfunc void SFCDRV_SetReadBuf(SFC_CMD_DES_T *cmd_des_ptr,
+	__ramfunc void sfcdrv_resetallbuf(void);
+	__ramfunc void sfcdrv_setreadbuf(SFC_CMD_DES_T *cmd_des_ptr,
 			u32_t cmd_flag);
-	__ramfunc void SFCDRV_SetCmdData(SFC_CMD_DES_T *cmd_des_ptr,
+	__ramfunc void sfcdrv_setcmddata(SFC_CMD_DES_T *cmd_des_ptr,
 			u32_t cmd_flag);
-	__ramfunc void SFCDREV_Req(void);
-	__ramfunc void SFCDRV_GetReadBuf(u32_t *buffer, u32_t word_cnt);
-	void SFCDRV_GetBuf(void *buffer, u32_t nbytes);
-	__ramfunc void SFCDRV_IntCfg(u32_t op);
-	__ramfunc void SFCDRV_ClkCfg(u32_t value);
-	__ramfunc void SFCDRV_Req(void);
+	__ramfunc void sfcdrv_getreadbuf(u32_t *buffer, u32_t word_cnt);
+	void sfcdrv_getbuf(void *buffer, u32_t nbytes);
+	__ramfunc void sfcdrv_intcfg(u32_t op);
+	__ramfunc void sfcdrv_clkcfg(u32_t value);
+	__ramfunc void sfcdrv_req(void);
 
 #ifdef __cplusplus
 }

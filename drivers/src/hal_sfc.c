@@ -62,24 +62,24 @@ __ramfunc void spiflash_read_write(SFC_CMD_DES_T *cmd_des_ptr, u32_t cmd_len,
 
 	SCI_ASSERT(cmd_len <= 12);
 
-	SFCDRV_ResetAllBuf();
-	SFCDRV_SetCMDCfgReg(CMD_MODE_WRITE, 0, INI_CMD_BUF_7);
+	sfcdrv_resetallbuf();
+	sfcdrv_setcmdcfgreg(CMD_MODE_WRITE, 0, INI_CMD_BUF_7);
 
 	for (i = 0; i < cmd_len; i++) {
 		cmd_des_ptr[i].is_valid = TRUE;
 		if (cmd_des_ptr[i].cmd_mode == CMD_MODE_WRITE)
-			SFCDRV_SetCmdData(&(cmd_des_ptr[i]), 0);
+			sfcdrv_setcmddata(&(cmd_des_ptr[i]), 0);
 		else if (cmd_des_ptr[i].cmd_mode == CMD_MODE_READ) {
-			SFCDRV_SetReadBuf(&(cmd_des_ptr[i]), 0);
+			sfcdrv_setreadbuf(&(cmd_des_ptr[i]), 0);
 			read_count++;
 		} else
 			SCI_ASSERT(0);
 	}
 
-	SFCDRV_Req();
+	sfcdrv_req();
 
 	if (0 != read_count)
-		SFCDRV_GetReadBuf(read_ptr, read_count);
+		sfcdrv_getreadbuf(read_ptr, read_count);
 }
 
 void spiflash_read_write_sec(SFC_CMD_DES_T * cmd_des_ptr, u32_t cmd_len)
@@ -88,10 +88,10 @@ void spiflash_read_write_sec(SFC_CMD_DES_T * cmd_des_ptr, u32_t cmd_len)
 
 	SCI_ASSERT(cmd_len <= 12);
 
-	SFCDRV_ResetAllBuf();
-	SFCDRV_SetCMDCfgReg(CMD_MODE_WRITE, 0, INI_CMD_BUF_7);
+	sfcdrv_resetallbuf();
+	sfcdrv_setcmdcfgreg(CMD_MODE_WRITE, 0, INI_CMD_BUF_7);
 
-	SFCDRV_SetCMDEncryptCfgReg(1);
+	sfcdrv_setcmdencryptcfgreg(1);
 
 	for (i = 0; i < cmd_len; i++) {
 		cmd_des_ptr[i].is_valid = TRUE;
@@ -100,11 +100,11 @@ void spiflash_read_write_sec(SFC_CMD_DES_T * cmd_des_ptr, u32_t cmd_len)
 		if (1 == i)
 			cmd_des_ptr[i].send_mode = SEND_MODE_1;
 
-		SFCDRV_SetCmdData(&(cmd_des_ptr[i]), 0);
+		sfcdrv_setcmddata(&(cmd_des_ptr[i]), 0);
 	}
-	SFCDRV_Req();
+	sfcdrv_req();
 
-	SFCDRV_SetCMDEncryptCfgReg(0);
+	sfcdrv_setcmdencryptcfgreg(0);
 }
 
 __ramfunc static void spiflash_get_status(struct spi_flash *flash,
@@ -248,8 +248,8 @@ __ramfunc void spiflash_set_xip(SFC_CMD_DES_T *cmd_des_ptr, u32_t cmd_len,
 {
 	u32_t i;
 
-	SFCDRV_ResetAllBuf();
-	SFCDRV_SetCMDCfgReg(CMD_MODE_READ, bit_mode, INI_CMD_BUF_7);
+	sfcdrv_resetallbuf();
+	sfcdrv_setcmdcfgreg(CMD_MODE_READ, bit_mode, INI_CMD_BUF_7);
 
 	for (i = 0; i < cmd_len; i++) {
 		cmd_des_ptr[i].is_valid = TRUE;
@@ -259,7 +259,7 @@ __ramfunc void spiflash_set_xip(SFC_CMD_DES_T *cmd_des_ptr, u32_t cmd_len,
 		else
 			cmd_des_ptr[i].send_mode = SEND_MODE_0;
 
-		SFCDRV_SetCmdData(&(cmd_des_ptr[i]), 0);
+		sfcdrv_setcmddata(&(cmd_des_ptr[i]), 0);
 	}
 
 }
@@ -529,7 +529,7 @@ __ramfunc int spiflash_cmd_poll_bit(struct spi_flash *flash,
 	u32_t count	 = 300000;
 
 	while (--count) {
-		SFCDRV_IntClr();
+		sfcdrv_intclr();
 	}
 
 	do {
@@ -545,7 +545,7 @@ __ramfunc int spiflash_cmd_poll_bit(struct spi_flash *flash,
 		/* delay 5ms */
 		count = 30000;
 		while (--count) {
-			SFCDRV_IntClr();
+			sfcdrv_intclr();
 		}
 
 	} while (timeout--);
@@ -1234,7 +1234,7 @@ int spiflash_read_data_noxip(struct spi_flash *flash, u32_t address,
 
 static int spiflash_set_encrypt(u32_t op)
 {
-	SFCDRV_SetCMDEncryptCfgReg(op);
+	sfcdrv_setcmdencryptcfgreg(op);
 	return 0;
 }
 
@@ -1375,7 +1375,7 @@ __ramfunc void spiflash_select_xip(u32_t op)
 
 __ramfunc void spiflash_set_clk(void)
 {
-	SFCDRV_ClkCfg(SFC_CLK_OUT_DIV_1 | SFC_CLK_OUT_2X_EN |
+	sfcdrv_clkcfg(SFC_CLK_OUT_DIV_1 | SFC_CLK_OUT_2X_EN |
 			SFC_CLK_2X_EN | SFC_CLK_SAMPLE_2X_PHASE |
 			SFC_CLK_SAMPLE_2X_EN);
 
@@ -1393,7 +1393,7 @@ __ramfunc void spiflash_set_clk(void)
 
 void uwp_spi_xip_init(void)
 {
-	SFCDRV_ClkCfg(SFC_CLK_OUT_DIV_2 | SFC_CLK_OUT_2X_EN |
+	sfcdrv_clkcfg(SFC_CLK_OUT_DIV_2 | SFC_CLK_OUT_2X_EN |
 			SFC_CLK_2X_EN | SFC_CLK_SAMPLE_2X_PHASE |
 			SFC_CLK_SAMPLE_2X_EN);
 

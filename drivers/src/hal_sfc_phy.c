@@ -9,12 +9,12 @@ static SFC_REG_T *reg_sfc = (SFC_REG_T *) BASE_AON_SFC_CFG;
 u32_t cmd_buf_index = 0;
 u32_t read_buf_index = 7;
 
-void SFCDRV_SetCMDEncryptCfgReg(u32_t cmdmode)
+void sfcdrv_setcmdencryptcfgreg(u32_t cmdmode)
 {
 	reg_sfc->cmd_cfg.mBits.encrypt_de_en = cmdmode;
 }
 
-__ramfunc void SFCDRV_SetCMDCfgReg(CMD_MODE_E cmdmode, BIT_MODE_E bitmode,
+__ramfunc void sfcdrv_setcmdcfgreg(CMD_MODE_E cmdmode, BIT_MODE_E bitmode,
 			 INI_ADD_SEL_E iniAddSel)
 {
 	reg_sfc->cmd_cfg.mBits.cmd_set = cmdmode;
@@ -24,12 +24,12 @@ __ramfunc void SFCDRV_SetCMDCfgReg(CMD_MODE_E cmdmode, BIT_MODE_E bitmode,
 
 volatile u32_t s_while_count1 = 0;
 
-__ramfunc void SFCDRV_SoftReq(void)
+__ramfunc void sfcdrv_softreq(void)
 {
 	reg_sfc->soft_req.mBits.soft_req = BIT(0);
 }
 
-__ramfunc void SFCDRV_CMDBufClr(void)
+__ramfunc void sfcdrv_cmdbufclr(void)
 {
 	reg_sfc->cmd_buf0.dwValue = 0;
 	reg_sfc->cmd_buf1.dwValue = 0;
@@ -45,47 +45,47 @@ __ramfunc void SFCDRV_CMDBufClr(void)
 	reg_sfc->cmd_buf11.dwValue = 0;
 }
 
-__ramfunc void SFCDRV_TypeBufClr(void)
+__ramfunc void sfcdrv_typebufclr(void)
 {
 	reg_sfc->tbuf_clr.mBits.tbuf_clr = BIT(0);
 }
 
-__ramfunc void SFCDRV_IntClr(void)
+__ramfunc void sfcdrv_intclr(void)
 {
 	reg_sfc->int_clr.mBits.int_clr = BIT(0);
 }
 
-u32_t SFCDRV_GetStatus(void)
+u32_t sfcdrv_getstatus(void)
 {
 	return reg_sfc->status.dwValue;
 }
 
-void SFCDRV_CSTimingCfg(u32_t value)
+void sfcdrv_cstimingcfg(u32_t value)
 {
 	reg_sfc->cs_timing_cfg.dwValue = value;
 }
 
-void SFCDRV_RDTimingCfg(u32_t value)
+void sfcdrv_rdtimingcfg(u32_t value)
 {
 	reg_sfc->rd_timing_cfg.dwValue = value;
 }
 
-__ramfunc void SFCDRV_ClkCfg(u32_t value)
+__ramfunc void sfcdrv_clkcfg(u32_t value)
 {
 	reg_sfc->clk_cfg.dwValue = value;
 }
 
-void SFCDRV_CSCfg(u32_t value)
+void sfcdrv_cscfg(u32_t value)
 {
 	reg_sfc->cs_cfg.dwValue = 0;
 }
 
-void SFCDRV_EndianCfg(u32_t value)
+void sfcdrv_endiancfg(u32_t value)
 {
 	reg_sfc->endian_cfg.dwValue = value;
 }
 
-__ramfunc void SFCDRV_SetCMDBuf(CMD_BUF_INDEX_E index, u32_t value)
+__ramfunc void sfcdrv_setcmdbuf(CMD_BUF_INDEX_E index, u32_t value)
 {
 	switch (index) {
 	case CMD_BUF_0:
@@ -140,7 +140,7 @@ __ramfunc void SFCDRV_SetCMDBuf(CMD_BUF_INDEX_E index, u32_t value)
 	}
 }
 
-void SFCDRV_SetCMDBufEx(CMD_BUF_INDEX_E index, const u8_t * buf, u32_t count)
+void sfcdrv_setcmdbufex(CMD_BUF_INDEX_E index, const u8_t *buf, u32_t count)
 {
 	SFC_CMD_BUF0_U *cmd_buf;
 
@@ -150,7 +150,7 @@ void SFCDRV_SetCMDBufEx(CMD_BUF_INDEX_E index, const u8_t * buf, u32_t count)
 	memcpy((u8_t *) & cmd_buf->dwValue, buf, count);
 }
 
-__ramfunc u32_t SFCDRV_GetCMDBuf(CMD_BUF_INDEX_E index)
+__ramfunc u32_t sfcdrv_getcmdbuf(CMD_BUF_INDEX_E index)
 {
 	u32_t value = 0;
 
@@ -209,7 +209,7 @@ __ramfunc u32_t SFCDRV_GetCMDBuf(CMD_BUF_INDEX_E index)
 	return value;
 }
 
-__ramfunc void SFCDRV_SetTypeInfBuf(CMD_BUF_INDEX_E index, BIT_MODE_E bitmode,
+__ramfunc void sfcdrv_settypeinfbuf(CMD_BUF_INDEX_E index, BIT_MODE_E bitmode,
 			  BYTE_NUM_E bytenum, CMD_MODE_E cmdmode,
 			  SEND_MODE_E sendmode)
 {
@@ -315,12 +315,12 @@ __ramfunc void SFCDRV_SetTypeInfBuf(CMD_BUF_INDEX_E index, BIT_MODE_E bitmode,
 	}
 }
 
-void SFCDRV_SetInitAddr(INI_ADD_SEL_E start_addr)
+void sfcdrv_setinitaddr(INI_ADD_SEL_E start_addr)
 {
 	reg_sfc->cmd_cfg.mBits.sts_ini_addr_sel = start_addr;
 }
 
-__ramfunc u32_t SFCDRV_GetInitAddr(void)
+__ramfunc u32_t sfcdrv_getinitaddr(void)
 {
 	u32_t start_addr = 0;
 
@@ -350,23 +350,24 @@ __ramfunc u32_t SFCDRV_GetInitAddr(void)
 	return start_addr;
 }
 
-void SFCDRV_WaitCmdDone(void)
+void sfcdrv_waitcmddone(void)
 {
-	while (!(SFC_IDLE_STATUS & SFCDRV_GetStatus())) ;
+	while (!(SFC_IDLE_STATUS & sfcdrv_getstatus())) {
+	};
 }
 
-__ramfunc void SFCDRV_SetCmdData(SFC_CMD_DES_T *cmd_des_ptr, u32_t cmd_flag)
+__ramfunc void sfcdrv_setcmddata(SFC_CMD_DES_T *cmd_des_ptr, u32_t cmd_flag)
 {
 	if (cmd_flag == SPI_CMD_DATA_BEGIN) {
-		SFCDRV_CMDBufClr();
-		SFCDRV_TypeBufClr();
+		sfcdrv_cmdbufclr();
+		sfcdrv_typebufclr();
 		cmd_buf_index = 0;
-		read_buf_index = SFCDRV_GetInitAddr();
+		read_buf_index = sfcdrv_getinitaddr();
 	}
 
 	if (cmd_des_ptr != NULL) {
-		SFCDRV_SetCMDBuf(cmd_buf_index, cmd_des_ptr->cmd);
-		SFCDRV_SetTypeInfBuf(cmd_buf_index,
+		sfcdrv_setcmdbuf(cmd_buf_index, cmd_des_ptr->cmd);
+		sfcdrv_settypeinfbuf(cmd_buf_index,
 				     cmd_des_ptr->bit_mode,
 				     cmd_des_ptr->cmd_byte_len,
 				     cmd_des_ptr->cmd_mode,
@@ -375,22 +376,22 @@ __ramfunc void SFCDRV_SetCmdData(SFC_CMD_DES_T *cmd_des_ptr, u32_t cmd_flag)
 	}
 
 	if (cmd_flag == SPI_CMD_DATA_END) {
-		SFCDRV_Req();
+		sfcdrv_req();
 	}
 }
 
-__ramfunc void SFCDRV_SetReadBuf(SFC_CMD_DES_T *cmd_des_ptr, u32_t cmd_flag)
+__ramfunc void sfcdrv_setreadbuf(SFC_CMD_DES_T *cmd_des_ptr, u32_t cmd_flag)
 {
 	if (cmd_flag == SPI_CMD_DATA_BEGIN) {
-		SFCDRV_CMDBufClr();
-		SFCDRV_TypeBufClr();
+		sfcdrv_cmdbufclr();
+		sfcdrv_typebufclr();
 		cmd_buf_index = 0;
-		read_buf_index = SFCDRV_GetInitAddr();
+		read_buf_index = sfcdrv_getinitaddr();
 	}
 
 	if (cmd_des_ptr != NULL) {
-		SFCDRV_SetCMDBuf(read_buf_index, cmd_des_ptr->cmd);
-		SFCDRV_SetTypeInfBuf(read_buf_index,
+		sfcdrv_setcmdbuf(read_buf_index, cmd_des_ptr->cmd);
+		sfcdrv_settypeinfbuf(read_buf_index,
 				     cmd_des_ptr->bit_mode,
 				     cmd_des_ptr->cmd_byte_len,
 				     cmd_des_ptr->cmd_mode,
@@ -399,19 +400,19 @@ __ramfunc void SFCDRV_SetReadBuf(SFC_CMD_DES_T *cmd_des_ptr, u32_t cmd_flag)
 	}
 
 	if (cmd_flag == SPI_CMD_DATA_END) {
-		SFCDRV_Req();
+		sfcdrv_req();
 	}
 }
 
-void SFCDRV_GetBuf(void *buffer, u32_t nbytes)
+void sfcdrv_getbuf(void *buffer, u32_t nbytes)
 {
 	u32_t i = 0, cnt = 0, temp = 0;
-	u32_t _start_index = SFCDRV_GetInitAddr();
+	u32_t _start_index = sfcdrv_getinitaddr();
 	u32_t data_in = 0;
 	u8_t *data_ptr8 = (u8_t *) (&data_in);
 
 	for (cnt = _start_index; (cnt < read_buf_index) && (i < nbytes); cnt++) {
-		data_in = SFCDRV_GetCMDBuf(cnt);
+		data_in = sfcdrv_getcmdbuf(cnt);
 		temp = (data_ptr8[0] << 24) | (data_ptr8[1] << 16) |
 		    (data_ptr8[2] << 8) | (data_ptr8[3] << 0);
 		if (nbytes - i < 4) {
@@ -424,31 +425,31 @@ void SFCDRV_GetBuf(void *buffer, u32_t nbytes)
 	}
 }
 
-__ramfunc void SFCDRV_GetReadBuf(u32_t *buffer, u32_t word_cnt)
+__ramfunc void sfcdrv_getreadbuf(u32_t *buffer, u32_t word_cnt)
 {
 	u32_t i = 0;
 	u32_t cnt = 0;
-	u32_t _start_index = SFCDRV_GetInitAddr();
+	u32_t _start_index = sfcdrv_getinitaddr();
 	u32_t data_in = 0;
 	u8_t *data_ptr8 = (u8_t *) (&data_in);
 
 	for (cnt = _start_index; (cnt < read_buf_index) && (i < word_cnt);
 	     cnt++) {
-		data_in = SFCDRV_GetCMDBuf(cnt);
+		data_in = sfcdrv_getcmdbuf(cnt);
 		buffer[i++] = (data_ptr8[0] << 24) | (data_ptr8[1] << 16) |
 		    (data_ptr8[2] << 8) | (data_ptr8[3] << 0);
 	}
 }
 
-__ramfunc void SFCDRV_ResetAllBuf(void)
+__ramfunc void sfcdrv_resetallbuf(void)
 {
-	SFCDRV_CMDBufClr();
-	SFCDRV_TypeBufClr();
+	sfcdrv_cmdbufclr();
+	sfcdrv_typebufclr();
 	cmd_buf_index = 0;
-	read_buf_index = SFCDRV_GetInitAddr();
+	read_buf_index = sfcdrv_getinitaddr();
 }
 
-__ramfunc void SFCDRV_IntCfg(u32_t op)
+__ramfunc void sfcdrv_intcfg(u32_t op)
 {
 	if (op == TRUE) {
 		*((volatile u32_t *)SFC_IEN) = 0xFF;
@@ -457,13 +458,13 @@ __ramfunc void SFCDRV_IntCfg(u32_t op)
 	}
 }
 
-__ramfunc void SFCDRV_Req(void)
+__ramfunc void sfcdrv_req(void)
 {
-	SFCDRV_IntClr();
-	SFCDRV_SoftReq();
+	sfcdrv_intclr();
+	sfcdrv_softreq();
 
 #if 0
-	while (!(SFC_IDLE_STATUS & SFCDRV_GetStatus())) {
+	while (!(SFC_IDLE_STATUS & sfcdrv_getstatus())) {
 	};
 #else
 	while (0 == (*((volatile u32_t *)SFC_INT_RAW))) {
