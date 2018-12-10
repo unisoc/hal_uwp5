@@ -111,7 +111,7 @@ __ramfunc static void spiflash_get_status(struct spi_flash *flash,
 		u8_t *status1, u8_t *status2)
 {
 	u8_t cmd = 0;
-	printk("\n[%s] == SF: spiflash status: ", __func__);
+	char logbuf[256] = { 0 };
 
 	cmd = CMD_READ_STATUS1;
 	spiflash_cmd_read(flash, &cmd, 1, 0xFFFFFFFF, status1, 1);
@@ -120,7 +120,11 @@ __ramfunc static void spiflash_get_status(struct spi_flash *flash,
 	spiflash_cmd_read(flash, &cmd, 1, 0xFFFFFFFF, status2, 1);
 
 	spiflash_select_xip(TRUE);
-	printk("status 1 = 0x%x, status2 = 0x%x\n", *status1, *status2);
+
+	snprintf(logbuf, sizeof(logbuf), " SF: spiflash status: "
+		"status1 = 0x%x, status2 = 0x%x in [%s]\n",
+		*status1, *status2, __func__);
+	LOG_DBG("[%s]", logbuf);
 }
 
 __ramfunc BYTE_NUM_E spi_flash_addr(u32_t *addr, u32_t support_4addr)
@@ -525,14 +529,8 @@ __ramfunc int spiflash_cmd_poll_bit(struct spi_flash *flash,
 {
 	u32_t status = 0;
 
-	/* delay 5ms */
-	u32_t count	 = 300000;
-
-	while (--count) {
-		sfcdrv_intclr();
-	}
-
 	do {
+
 		spiflash_cmd_read(flash, &cmd, 1, 0xFFFFFFFF, &status, 1);
 		if (bit_value) {
 			if ((status & poll_bit))
@@ -540,12 +538,6 @@ __ramfunc int spiflash_cmd_poll_bit(struct spi_flash *flash,
 		} else {
 			if ((status & poll_bit) == 0)
 				return 0;
-		}
-
-		/* delay 5ms */
-		count = 30000;
-		while (--count) {
-			sfcdrv_intclr();
 		}
 
 	} while (timeout--);
