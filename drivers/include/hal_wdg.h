@@ -140,21 +140,6 @@ extern "C" {
 		uwp_wdg_lock();
 	}
 
-	static inline void uwp_wdg_clear_int(u32_t bitmap)
-	{
-		u32_t cnt = 0;
-
-		uwp_wdg_unlock();
-
-		sci_reg_or(REG_WDG_INT_CLR, bitmap);
-		while((sci_read32(REG_WDG_INT_RAW) & bitmap) && (cnt++ < 200));
-		if (cnt >= 200){
-			printk("clear fail,(bitmap=%x)\n",bitmap);
-		}
-
-		uwp_wdg_lock();
-	}
-
 	static inline void uwp_wdg_enable(void)
 	{
 		uwp_wdg_unlock();
