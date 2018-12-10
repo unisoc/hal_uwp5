@@ -22,6 +22,8 @@ extern "C" {
 #define GPIO_TRIGGER_BOTH_EDGE		1
 #define GPIO_TRIGGER_LEVEL_HIGH		2
 #define GPIO_TRIGGER_LEVEL_LOW		3
+#define GPIO_TRIGGER_HIGH_EDGE		4
+#define GPIO_TRIGGER_LOW_EDGE		5
 
 	struct uwp_gpio {
 		u32_t data;		/* data */
@@ -106,14 +108,22 @@ extern "C" {
 	{
 		volatile struct uwp_gpio *gpio = UWP_GPIO(base);
 
-		if(type == GPIO_TRIGGER_BOTH_EDGE) {
+		if (type == GPIO_TRIGGER_BOTH_EDGE) {
 			gpio->is &= (~pin_map);
 			gpio->ibe |= pin_map;
+		} else if (type == GPIO_TRIGGER_HIGH_EDGE) {
+			gpio->is &= (~pin_map);
+			gpio->ibe &= (~pin_map);
+			gpio->iev |= pin_map;
+		} else if (type == GPIO_TRIGGER_LOW_EDGE) {
+			gpio->is &= (~pin_map);
+			gpio->ibe &= (~pin_map);
+			gpio->iev &= (~pin_map);
 		} else {
 			gpio->is |= pin_map;
 			gpio->ibe &= (~pin_map);
 
-			if(type == GPIO_TRIGGER_LEVEL_HIGH)
+			if (type == GPIO_TRIGGER_LEVEL_HIGH)
 				gpio->iev |= pin_map;
 			else
 				gpio->iev &= (~pin_map);
