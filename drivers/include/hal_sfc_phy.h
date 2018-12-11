@@ -465,7 +465,7 @@ extern "C" {
 	void sfcdrv_setcmdcfgreg(CMD_MODE_E cmdmode, BIT_MODE_E bitmode,
 			INI_ADD_SEL_E iniAddSel);
 	void sfcdrv_softreq(void);
-	void sfcdrv_cmd_bufClr(void);
+	void sfcdrv_cmd_bufclr(void);
 	void sfcdrv_typebufclr(void);
 	void sfcdrv_intclr(void);
 	u32_t sfcdrv_getstatus(void);
