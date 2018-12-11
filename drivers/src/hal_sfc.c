@@ -9,6 +9,7 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 
 #include <kernel.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <hal_sfc.h>
 #include <hal_sfc_cfg.h>
