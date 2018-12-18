@@ -565,7 +565,6 @@ __ramfunc int spiflash_cmd_erase(struct spi_flash *flash,
 	SFC_CMD_DES_T cmd_desc[2];
 	BIT_MODE_E bitmode = BIT_MODE_1;
 	BYTE_NUM_E addr_byte_num = BYTE_NUM_3;
-	unsigned int key;
 
 	if (QPI_MODE == flash->work_mode) {
 		bitmode = BIT_MODE_4;
@@ -576,8 +575,6 @@ __ramfunc int spiflash_cmd_erase(struct spi_flash *flash,
 		LOG_INF("SF: Erase offset/length not multiple of erase size\n");
 		return -1;
 	}
-
-	key = irq_lock();
 
 	ret = spiflash_write_enable(flash);
 	if (ret)
@@ -596,7 +593,6 @@ __ramfunc int spiflash_cmd_erase(struct spi_flash *flash,
 out:
 
 	spiflash_select_xip(TRUE);
-	irq_unlock(key);
 
 	return ret;
 
@@ -884,7 +880,6 @@ __ramfunc int spiflash_cmd_program(struct spi_flash *flash, u32_t offset,
 	BIT_MODE_E bitmode = BIT_MODE_1;
 	u32_t data_len, space_len;
 	int ret = 0;
-	unsigned int key;
 
 	page_size = flash->page_size;
 
@@ -901,12 +896,9 @@ __ramfunc int spiflash_cmd_program(struct spi_flash *flash, u32_t offset,
 		space_len = page_size - byte_addr;
 		chunk_len = min(data_len, space_len);
 
-		key = irq_lock();
-
 		ret = spiflash_write_enable(flash);
 		if (ret < 0) {
 			spiflash_select_xip(TRUE);
-			irq_unlock(key);
 			LOG_ERR("SF: enabling write failed\n");
 			break;
 		}
@@ -926,7 +918,6 @@ __ramfunc int spiflash_cmd_program(struct spi_flash *flash, u32_t offset,
 
 
 		spiflash_select_xip(TRUE);
-		irq_unlock(key);
 
 		if (ret < 0) {
 			LOG_ERR("SF: write failed\n");
@@ -972,13 +963,11 @@ __ramfunc int spiflash_lock(struct spi_flash *flash, u32_t offset, u32_t len)
 	u8_t status1 = 0, status2 = 0;
 	int dout = 0;
 	int ret = 0;
-	unsigned int key;
 
 	offset = 0;
 	len = 0;
 
 	spiflash_get_status(flash, &status1, &status2);
-	key = irq_lock();
 	spiflash_write_enable(flash);
 
 	cmd = CMD_WRITE_STATUS;
@@ -989,7 +978,6 @@ __ramfunc int spiflash_lock(struct spi_flash *flash, u32_t offset, u32_t len)
 	ret = spiflash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
 
 	spiflash_select_xip(TRUE);
-	irq_unlock(key);
 
 	return ret;
 }
@@ -1000,13 +988,11 @@ __ramfunc int spiflash_unlock(struct spi_flash *flash, u32_t offset, u32_t len)
 	u8_t status1 = 0, status2 = 0;
 	int dout = 0;
 	int ret = 0;
-	unsigned int key;
 
 	offset = 0;
 	len = 0;
 
 	spiflash_get_status(flash, &status1, &status2);
-	key = irq_lock();
 	spiflash_write_enable(flash);
 
 	cmd = CMD_WRITE_STATUS;
@@ -1017,7 +1003,6 @@ __ramfunc int spiflash_unlock(struct spi_flash *flash, u32_t offset, u32_t len)
 	ret = spiflash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
 
 	spiflash_select_xip(TRUE);
-	irq_unlock(key);
 
 	return ret;
 }
@@ -1094,18 +1079,15 @@ int spiflash_resume(struct spi_flash *flash)
 __ramfunc int spiflash_erase_chip(struct spi_flash *flash)
 {
 	int ret = 0;
-	unsigned int key;
 
 	u8_t cmd = CMD_CHIP_ERASE;
 
-	key = irq_lock();
 	spiflash_write_enable(flash);
 	spiflash_cmd_write(flash, &cmd, 1, NULL, 0);
 
 	ret = spiflash_cmd_wait_ready(flash, SPI_FLASH_CHIP_ERASE_TIMEOUT);
 
 	spiflash_select_xip(TRUE);
-	irq_unlock(key);
 
 	return ret;
 }
@@ -1237,10 +1219,8 @@ static int spiflash_change_4io(struct spi_flash *flash, u32_t op)
 	u8_t status1 = 0, status2 = 0;
 	u8_t cmd = 0;
 	int ret = 0;
-	unsigned int key;
 
 	spiflash_get_status(flash, &status1, &status2);
-	key = irq_lock();
 	spiflash_write_enable(flash);
 	cmd = CMD_WRITE_STATUS;
 	if (op == TRUE) {
@@ -1254,7 +1234,6 @@ static int spiflash_change_4io(struct spi_flash *flash, u32_t op)
 	ret = spiflash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
 
 	spiflash_select_xip(TRUE);
-	irq_unlock(key);
 
 	return ret;
 }
@@ -1313,6 +1292,7 @@ static int spiflash_read(struct spi_flash *flash, u32_t offset,
 		u32_t *buf, u32_t len, READ_CMD_TYPE_E type)
 {
 
+	unsigned int key;
 	int ret = TRUE;
 
 #ifndef CONFIG_W25_READONLY
@@ -1321,10 +1301,10 @@ static int spiflash_read(struct spi_flash *flash, u32_t offset,
 	u32_t read_char = 0;
 
 	/* modify for xip-sfc */
-
+	key = irq_lock_primask();
 	ret = spiflash_read_data_xip(flash, offset, (u32_t *) &read_char,
 				     dump_byte, type);
-
+	irq_unlock_primask(key);
 
 	memcpy((char *)buf, (char *)read_char, len);
 

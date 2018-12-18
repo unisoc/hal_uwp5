@@ -11,6 +11,10 @@
 extern "C" {
 #endif
 
+#include <zephyr/types.h>
+#include <arch/arm/cortex_m/exc.h>
+#include <irq.h>
+
 #include "uwp_hal.h"
 
 	typedef struct SPIFLASH_ExtCfg {
@@ -143,6 +147,27 @@ extern "C" {
 	void spi_flash_free(struct spi_flash *flash);
 
 	void uwp_spi_dump(u32_t arg_in);
+
+static ALWAYS_INLINE unsigned int irq_lock_primask(void)
+{
+	unsigned int key;
+
+	__asm__ volatile("mrs %0, PRIMASK;"
+		"cpsid i"
+		: "=r" (key)
+		:
+		: "memory");
+
+	return key;
+}
+
+static ALWAYS_INLINE void irq_unlock_primask(unsigned int key)
+{
+	if (key) {
+		return;
+	}
+	__asm__ volatile("cpsie i" : : : "memory");
+}
 
 #ifdef __cplusplus
 }
