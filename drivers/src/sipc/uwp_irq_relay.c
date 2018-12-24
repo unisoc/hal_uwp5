@@ -242,6 +242,7 @@ void sprd_wifi_irq_enable_num(u32_t num)
 	switch (num) {
 	case NVIC_INT_REQ_COM_TMR:
 	case NVIC_INT_DPD:
+	case NVIC_INT_MAC:
 		irq_enable(num);
 	break;
 	default:
@@ -257,6 +258,7 @@ void sprd_wifi_irq_disable_num(u32_t num)
 	switch (num) {
 	case NVIC_INT_REQ_COM_TMR:
 	case NVIC_INT_DPD:
+	case NVIC_INT_MAC:
 		irq_disable(num);
 	break;
 	default:
@@ -283,6 +285,8 @@ int wifi_irq_init(void)
 		NVIC_INT_DPD, 0);
 	IRQ_CONNECT(NVIC_INT_REQ_COM_TMR, 5, wifi_int_irq_handler,
 		NVIC_INT_REQ_COM_TMR, 0);
+	IRQ_CONNECT(NVIC_INT_MAC, 5, wifi_int_irq_handler,
+		NVIC_INT_MAC, 0);
 
 	return 0;
 }
