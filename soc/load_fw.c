@@ -34,11 +34,10 @@ int move_cp(char *src, char *dst, uint32_t size)
 	char *from_8, *to_8;
 
 	if (src == NULL || dst == NULL || size == 0) {
-		LOG_ERR("invalid parameter,src=%p,dst=%p,size=%d", src, dst, size);
+		LOG_ERR("invalid parameter,src=%p,dst=%p,size=%d", src, dst, (int)size);
 		return -1;
-	} else  {
-		LOG_DBG("copy %u byte from %p to %p", size, src, dst);
 	}
+
 	from = (int *)src;
 	to = (int *)dst;
 	len = size / 4;
