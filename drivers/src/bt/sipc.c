@@ -63,6 +63,12 @@ static K_FIFO_DEFINE(tx_queue);
 #define LE_ADV_REPORT_COUNT 40
 #define LE_ADV_REPORT_SIZE 50
 
+#if defined(CONFIG_BT_TEST)
+extern int check_bteut_ready(void);
+extern void bt_npi_recv(unsigned char *data, int len);
+extern int get_bqb_state(void);
+extern void bqb_recv_cb(unsigned char *data, int len);
+#endif
 NET_BUF_POOL_DEFINE(le_adv_report_pool, LE_ADV_REPORT_COUNT,
 		    LE_ADV_REPORT_SIZE, BT_BUF_USER_DATA_MIN, NULL);
 
@@ -198,6 +204,16 @@ static void rx_thread(void)
 
 		HCIDUMP("<- ", blk.addr, blk.length);
 
+#if defined(CONFIG_BT_TEST)
+		if (0 != check_bteut_ready()) {
+			bt_npi_recv((unsigned char*)blk.addr,blk.length);
+			goto rx_continue;
+		}
+		if (1 == get_bqb_state()) {
+			bqb_recv_cb((unsigned char*)blk.addr,blk.length);
+			goto rx_continue;
+		}
+#endif
 		left_length = blk.length;
 
 		do {
