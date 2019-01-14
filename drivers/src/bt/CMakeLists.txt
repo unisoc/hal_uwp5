@@ -9,4 +9,5 @@ execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/gen_bt_cfg.sh
 	bt_configure.h
 	bt_configure_pskey.ini
 	bt_configure_rf.ini
+	bt_info.ini
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

@@ -86,6 +86,10 @@ typedef struct {
     uint32_t RF_common_rfu_w[5];
 }bt_configure_rf_t;
 
+typedef struct {
+    uint8_t  address[6];
+}bt_info_t;
+
 void uwp5661_vendor_init(void);
 
 #endif

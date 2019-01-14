@@ -234,20 +234,35 @@ int get_pskey_buf(void *buf)
     return size;
 }
 
+void set_mac_address(uint8_t *addr)
+{
+    uint8_t default_addr[6] = {0x00, 0x00, 0x00, 0xDA, 0x45, 0x40};
+    u32_t random;
+
+    if(0 == memcmp(bt_info.address, default_addr,sizeof(default_addr))) {
+        random =sys_rand32_get();
+        memcpy(default_addr, &random, 3);
+        memcpy(addr, default_addr, sizeof(default_addr));
+    } else {
+        memcpy(addr, bt_info.address, sizeof(bt_info.address));
+    }
+}
+
 void get_mac_address(char *addr)
 {
     memcpy(addr, bt_configure_pskey.device_addr, sizeof(bt_configure_pskey.device_addr));
 }
 
 int marlin3_init(void) {
-	int ret;
+    int ret;
 
     BTD("%s", __func__);
+    set_mac_address(bt_configure_pskey.device_addr);
 
-	ret = uwp_mcu_init();
-	if (ret) {
-		BTD("%s firmware download failed", __func__);
-	}
+    ret = uwp_mcu_init();
+    if (ret) {
+        BTD("%s firmware download failed", __func__);
+    }
 
     return ret;
 }
