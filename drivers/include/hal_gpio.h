@@ -89,7 +89,7 @@ extern "C" {
 	{
 		volatile struct uwp_gpio *gpio = UWP_GPIO(base);
 
-		return ~(gpio->data & pin);
+		return (gpio->data & pin);
 	}
 
 	static inline void uwp_gpio_set_dir(u32_t base,
