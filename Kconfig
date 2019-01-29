@@ -31,12 +31,6 @@ config USE_UWP_HAL_FW
 	help
 	  Provide interfaces to download firmware for another CM4.
 
-config USE_UWP_HAL_SFC
-	bool
-	default y
-	help
-	  Provide interfaces to operate SFC.
-
 config USE_UWP_HAL_SRAM
 	bool
 	default y
@@ -45,4 +39,5 @@ config USE_UWP_HAL_SRAM
 
 source "ext/hal/unisoc/uwp5661/drivers/src/sipc/Kconfig"
 source "ext/hal/unisoc/uwp5661/drivers/src/bt/Kconfig"
+source "ext/hal/unisoc/uwp5661/drivers/src/sfc/Kconfig"
 endif
