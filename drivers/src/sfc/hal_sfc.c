@@ -10,6 +10,7 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 #include <kernel.h>
 #include <string.h>
 #include <stdio.h>
+#include <uwp_hal.h>
 
 #include <hal_sfc.h>
 #include <hal_sfc_cfg.h>
@@ -1304,6 +1305,10 @@ static int spiflash_read(struct spi_flash *flash, u32_t offset,
 
 	/* modify for xip-sfc */
 	key = irq_lock_primask();
+
+	cache_invalid_range_hal((u8_t *)(offset), len);
+	dcache_clean_range_hal((u8_t *)(offset), len);
+
 	ret = spiflash_read_data_xip(flash, offset, (u32_t *) &read_char,
 				     dump_byte, type);
 	irq_unlock_primask(key);

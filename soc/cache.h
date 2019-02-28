@@ -288,6 +288,14 @@ extern "C" {
 	void icache_dcache_enable_block_hal(void);
 	void icache_dcache_disable_block_hal(void);
 
+	void dcache_invalid_range_hal(uint8_t *begin, uint32_t data_len);
+	void icache_invalid_range_hal(uint8_t *begin, uint32_t data_len);
+	void cache_invalid_range_hal(uint8_t *begin, uint32_t data_len);
+
+	void dcache_clean_range_hal(uint8_t *begin, uint32_t data_len);
+
+	void cache_waiting_idle(void);
+
 #ifdef __cplusplus
 }				/* end extern "C" */
 #endif

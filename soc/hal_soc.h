@@ -14,6 +14,8 @@ extern "C" {
 #include "uwp_hal.h"
 
 extern void uwp_cache_init(void);
+extern void cache_invalid_range_hal(uint8_t *begin, uint32_t data_len);
+extern void dcache_clean_range_hal(uint8_t *begin, uint32_t data_len);
 extern void uwp_glb_init(void);
 extern int uwp_mcu_init(void);
 

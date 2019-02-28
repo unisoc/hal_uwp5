@@ -455,6 +455,90 @@ void cache_execusecfg(CACHE_BLOCK_OP_T *pcfg, u32_t size)
 	}
 }
 
+uint32_t icache_check_all_block_disable(void)
+{
+	if (sci_read32(REG_ICACHE_BASE) & 0x000000FF)
+		return	0;
+	else
+		return	1;
+}
+
+uint32_t dcache_check_all_block_disable(void)
+{
+	if (sci_read32(REG_DCACHE_BASE) & 0x000000FF)
+		return	0;
+	else
+		return	1;
+}
+
+void dcache_clean_range(uint32_t start, uint32_t end)
+{
+	CACHE_CMD_T command;
+
+	LOG_DBG("start clean dcache, start:[%08lx], end:[%08lx]\n", start, end);
+
+	dcache_set_reg();
+	if (dcache_check_all_block_disable())
+	 {
+		 LOG_ERR("ERROR: to clean range is disable!\n");
+		 return;
+	 }
+	
+	command.type 		= C_CLEAN_RANGE;
+	command.start 	= start;
+	command.end		= end;
+
+	cache_execmd(&command, TRUE);
+}
+
+void icache_invalid_range(uint32_t start, uint32_t end)
+{
+	CACHE_CMD_T command;
+
+	icache_set_reg();
+
+	command.type		= C_INVALID_RANGE;
+	command.start 	= start;
+	command.end		= end;
+
+	cache_execmd(&command, TRUE);
+}
+
+void dcache_invalid_range(uint32_t start, uint32_t end)
+{
+	CACHE_CMD_T command;
+
+	dcache_set_reg();
+
+	command.type 		= C_INVALID_RANGE;
+	command.start 	= start;
+	command.end		= end;
+
+	cache_execmd(&command, TRUE);
+}
+
+void icache_invalid_range_hal(uint8_t *begin, uint32_t data_len)
+{
+	icache_invalid_range((uint32_t)begin, ((uint32_t)begin + data_len));
+}
+
+void dcache_invalid_range_hal(uint8_t *begin, uint32_t data_len)
+{
+	dcache_invalid_range((uint32_t)begin, ((uint32_t)begin + data_len));
+}
+
+void dcache_clean_range_hal(uint8_t *begin, uint32_t data_len)
+{
+	dcache_clean_range((uint32_t)begin, ((uint32_t)begin + data_len));
+}
+
+void cache_invalid_range_hal(uint8_t *begin, uint32_t data_len)
+{
+	LOG_DBG("Enter %s %d , addr from [%08lx] to [%08lx].\n", __func__, __LINE__, (uint32_t)begin, ((uint32_t)begin + data_len));
+	icache_invalid_range_hal(begin, data_len);
+	dcache_invalid_range_hal(begin, data_len);
+}
+
 void icache_phy_init(CACHE_SIZE_SEL_E icache_size)
 {
 	u32_t i;
