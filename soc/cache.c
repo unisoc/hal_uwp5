@@ -2,6 +2,10 @@
 #include <uwp_hal.h>
 #include "cache.h"
 
+#include <logging/log.h>
+#define LOG_MODULE_NAME repeater
+#define LOG_LEVEL CONFIG_REPEATER_LOG_LEVEL
+LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 
 static CACHE_BLOCK_OP_T C_ICACHE_DEFAULT_BLOCK_CFG[] = {
 	{ BLOCK_0, 0x00000000, FALSE, FALSE },
