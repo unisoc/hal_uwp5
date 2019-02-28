@@ -91,45 +91,80 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 #define ATOR_INTR1        (1<<1)
 #define ATOR_INTR2        (1<<2)
 
-
-void clear_bt_int(int irq_num)
+#define SHARE_MEM_WATCH   (0x1EEF00)
+u16_t clear_bt_int(int irq_num)
 {
+	u16_t tem=0;
 	switch (irq_num) {
 	case NVIC_BT_MASKED_TIM_INTR0:
+		*((u16_t *)(SHARE_MEM_WATCH+0x0c)) += 1;
+		tem = *((u16_t *)(SHARE_MEM_WATCH+0x0c));
 		CEVA_IP_int_clear(TIM_INTRO_CLR); break;
 	case NVIC_BT_MASKED_TIM_INTR1:
+		*((u16_t *)(SHARE_MEM_WATCH+0x10)) += 1;
+		tem = *((u16_t *)(SHARE_MEM_WATCH+0x10));
 		CEVA_IP_int_clear(TIM_INTR1_CLR); break;
 	case NVIC_BT_MASKED_TIM_INTR2:
+		*((u16_t *)(SHARE_MEM_WATCH+0x14)) += 1;
+		tem = *((u16_t *)(SHARE_MEM_WATCH+0x14));
 		CEVA_IP_int_clear(TIM_INTR2_CLR); break;
 	case NVIC_BT_MASKED_TIM_INTR3:
+		*((u16_t *)(SHARE_MEM_WATCH+0x18)) += 1;
+		tem = *((u16_t *)(SHARE_MEM_WATCH+0x18));
 		CEVA_IP_int_clear(TIM_INTR3_CLR); break;
 	case NVIC_BT_MASKED_AUX_TMR_INTR:
+		*((u16_t *)(SHARE_MEM_WATCH+0x24)) += 1;
+		tem = *((u16_t *)(SHARE_MEM_WATCH+0x24));
 		CEVA_IP_int_clear(AUX_TMR_INTR); break;
 	case NVIC_BT_MASKED_PKA_INTR:
-		CEVA_IP_int_MASK(PKA_INTR_MASK); break;
+		*((u16_t *)(SHARE_MEM_WATCH+0x20)) += 1;
+		tem = *((u16_t *)(SHARE_MEM_WATCH+0x20));
+		CEVA_IP_int_clear(PKA_INTR); break;
 	case NVIC_BT_MASKED_SYNC_DET_INTR:
-		CEVA_IP_int_MASK(SYNC_DET_INTR_MASK); break;
+		*((u16_t *)(SHARE_MEM_WATCH+0x04)) += 1;
+		tem = *((u16_t *)(SHARE_MEM_WATCH+0x04));
+		CEVA_IP_int_clear(SYNC_DET_INTR); break;
 	case NVIC_BT_MASKED_PKD_RX_HDR:
-		CEVA_IP_int_MASK(PKD_RX_HDR_INTR_MASK); break;
+		*((u16_t *)(SHARE_MEM_WATCH+0x08)) += 1;
+		tem = *((u16_t *)(SHARE_MEM_WATCH+0x08));
+		CEVA_IP_int_clear(PKD_RX_HDR); break;
 	case NVIC_BT_MASKED_PKD_INTR:
-		CEVA_IP_int_MASK(PKD_INTR_MASK); break;
+		*((u16_t *)(SHARE_MEM_WATCH+0x1c)) += 1;
+		tem =  *((u16_t *)(SHARE_MEM_WATCH+0x1c));
+		CEVA_IP_int_clear(PKD_INTR); break;
 	case NVIC_BT_MASKED_PAGE_TIMEOUT_INTR:
+		*((u16_t *)(SHARE_MEM_WATCH+0)) += 1;
+		tem = *((u16_t *)(SHARE_MEM_WATCH+0));
 		CEVA_IP_int_MASK(PKD_NO_PKD_INTR_MASK); break;
 	case NVIC_BT_ACCELERATOR_INTR0:
+		*((u16_t *)(SHARE_MEM_WATCH+0x28)) += 1;
+		tem = *((u16_t *)(SHARE_MEM_WATCH+0x28));
 		HW_DEC_int_clear(ATOR_INTR0); break;
 	case NVIC_BT_ACCELERATOR_INTR1:
+		*((u16_t *)(SHARE_MEM_WATCH+0x2c)) += 1;
+		tem = *((u16_t *)(SHARE_MEM_WATCH+0x2c));
 		HW_DEC_int_clear(ATOR_INTR1); break;
 	case NVIC_BT_ACCELERATOR_INTR2:
+		*((u16_t *)(SHARE_MEM_WATCH+0x30)) += 1;
+		tem = *((u16_t *)(SHARE_MEM_WATCH+0x30));
 		HW_DEC_int_clear(ATOR_INTR2); break;
 	case NVIC_BT_ACCELERATOR_INTR3:
+		*((u16_t *)(SHARE_MEM_WATCH+0x34)) += 1;
+		tem = *((u16_t *)(SHARE_MEM_WATCH+0x34));
 		HW_DEC_int_clear_sts; break;
 	case NVIC_BT_ACCELERATOR_INTR4:
+		*((u16_t *)(SHARE_MEM_WATCH+0x38)) += 1;
+		tem = *((u16_t *)(SHARE_MEM_WATCH+0x38));
 		HW_DEC_int1_clear_sts; break;
 
-	default:
+    default:
 		LOG_INF("bt clear irq error %d\n", irq_num); break;
 	}
-
+	if((tem == SMSG_OPEN_MAGIC) || (tem == SMSG_CLOSE_MAGIC)) {
+		return 0;
+	} else {
+		return tem;
+	}
 }
 
 void sprd_bt_irq_enable(void)
@@ -175,9 +210,9 @@ static int bt_irq_handler(void *arg)
 {
 	struct smsg msg;
 	s32_t irq = (s32_t)arg;
-
-	clear_bt_int(irq);
-	smsg_set(&msg, SMSG_CH_IRQ_DIS, SMSG_TYPE_EVENT, 0, irq);
+	u16_t tem;
+	tem = clear_bt_int(irq);
+	smsg_set(&msg, SMSG_CH_IRQ_DIS, SMSG_TYPE_EVENT, tem, irq);
 	smsg_send_irq(SIPC_ID_AP, &msg);
 	return 0;
 }
