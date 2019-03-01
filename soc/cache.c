@@ -12,7 +12,7 @@ static CACHE_BLOCK_OP_T C_ICACHE_DEFAULT_BLOCK_CFG[] = {
 	{ BLOCK_1, 0x00100000, TRUE, FALSE },
 	{ BLOCK_2, 0x001EE000, FALSE, FALSE },
 	{ BLOCK_3, 0x02000000, TRUE, FALSE },
-	{ BLOCK_4, 0x02180000, FALSE, FALSE },
+	{ BLOCK_4, 0x02180000, TRUE, FALSE },
 	{ BLOCK_5, 0x02400000, FALSE, FALSE },
 	{ BLOCK_6, 0x02480000, FALSE, FALSE },
 	{ BLOCK_7, 0x028B0000, FALSE, FALSE },
@@ -23,7 +23,7 @@ static CACHE_BLOCK_OP_T C_DCACHE_DEFAULT_BLOCK_CFG[] = {
 	{ BLOCK_1, 0x00100000, FALSE, FALSE },
 	{ BLOCK_2, 0x001EE000, FALSE, FALSE },
 	{ BLOCK_3, 0x02000000, TRUE, FALSE },
-	{ BLOCK_4, 0x02180000, FALSE, FALSE },
+	{ BLOCK_4, 0x02180000, TRUE, FALSE },
 	{ BLOCK_5, 0x02400000, FALSE, FALSE },
 	{ BLOCK_6, 0x02480000, FALSE, FALSE },
 	{ BLOCK_7, 0x028B0000, FALSE, FALSE },
@@ -277,9 +277,9 @@ u32_t cache_execmd(CACHE_CMD_T *cmd, u32_t force)
 		}
 	}
 
-#if 0
 	if (ret == 0) {
 		sci_write32(CACHE_CMD_CFG2, value & CACHE_CMD_CFG2_MASK);
+#if 0
 		while (0 == (sci_read32(CACHE_INT_RAW_STS) & CACHE_CMD_IRQ_RAW)) {
 			if (t++ > 100000) {
 				LOG_INF("%s %d.\n", __func__, __LINE__);
@@ -287,8 +287,8 @@ u32_t cache_execmd(CACHE_CMD_T *cmd, u32_t force)
 			}
 		}
 		set_bits(CACHE_CMD_IRQ_CLR, CACHE_INT_CLR);
-	}
 #endif
+	}
 
 	return ret;
 }
