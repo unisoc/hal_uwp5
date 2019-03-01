@@ -37,7 +37,22 @@ config USE_UWP_HAL_SRAM
 	help
 	  Provide interfaces to initialize SRAM.
 
-source "ext/hal/unisoc/uwp5661/drivers/src/sipc/Kconfig"
-source "ext/hal/unisoc/uwp5661/drivers/src/bt/Kconfig"
-source "ext/hal/unisoc/uwp5661/drivers/src/sfc/Kconfig"
+config SIPC
+	bool "UNISOC sipc lib"
+	default n
+	help
+		enbale sipc feature
+
+config BT_UWP5661
+	bool "UNISOC bt"
+	depends on BT
+	default n
+	help
+      enbale bt feature
+
+config USE_UWP_HAL_SFC
+	bool
+	default y
+	help
+	  Provide interfaces to operate SFC.
 endif
