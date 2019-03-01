@@ -16,6 +16,8 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 #include <hal_sfc_phy.h>
 #include <hal_sfc_hal.h>
 
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+
 void uwp_spi_dump(u32_t arg_in)
 {
 	LOG_ERR("dump SFC register:[#### %d ####]\n", arg_in);
