@@ -12,10 +12,10 @@ static CACHE_BLOCK_OP_T C_ICACHE_DEFAULT_BLOCK_CFG[] = {
 	{ BLOCK_1, 0x00100000, TRUE, FALSE },
 	{ BLOCK_2, 0x001EE000, FALSE, FALSE },
 	{ BLOCK_3, 0x02000000, TRUE, FALSE },
-	{ BLOCK_4, 0x02180000, TRUE, FALSE },
-	{ BLOCK_5, 0x02400000, FALSE, FALSE },
-	{ BLOCK_6, 0x02480000, FALSE, FALSE },
-	{ BLOCK_7, 0x028B0000, FALSE, FALSE },
+	{ BLOCK_4, 0x02400000, FALSE, FALSE },
+	{ BLOCK_5, 0x02480000, FALSE, FALSE },
+	{ BLOCK_6, 0x028B0000, FALSE, FALSE },
+	{ BLOCK_7, 0x02900000, FALSE, FALSE },
 };
 
 static CACHE_BLOCK_OP_T C_DCACHE_DEFAULT_BLOCK_CFG[] = {
@@ -23,10 +23,10 @@ static CACHE_BLOCK_OP_T C_DCACHE_DEFAULT_BLOCK_CFG[] = {
 	{ BLOCK_1, 0x00100000, FALSE, FALSE },
 	{ BLOCK_2, 0x001EE000, FALSE, FALSE },
 	{ BLOCK_3, 0x02000000, TRUE, FALSE },
-	{ BLOCK_4, 0x02180000, TRUE, FALSE },
-	{ BLOCK_5, 0x02400000, FALSE, FALSE },
-	{ BLOCK_6, 0x02480000, FALSE, FALSE },
-	{ BLOCK_7, 0x028B0000, FALSE, FALSE },
+	{ BLOCK_4, 0x02400000, FALSE, FALSE },
+	{ BLOCK_5, 0x02480000, FALSE, FALSE },
+	{ BLOCK_6, 0x028B0000, FALSE, FALSE },
+	{ BLOCK_7, 0x02900000, FALSE, FALSE },
 };
 
 static u32_t icache_bus_cfg_addr[] = {
@@ -479,7 +479,7 @@ void dcache_clean_range(uint32_t start, uint32_t end)
 {
 	CACHE_CMD_T command;
 
-	LOG_DBG("start clean dcache, start:[%08lx], end:[%08lx]\n", start, end);
+	LOG_DBG("start clean dcache, start:[%08x], end:[%08x]\n", (unsigned int)start, (unsigned int)end);
 
 	dcache_set_reg();
 	if (dcache_check_all_block_disable())
@@ -538,7 +538,7 @@ void dcache_clean_range_hal(uint8_t *begin, uint32_t data_len)
 
 void cache_invalid_range_hal(uint8_t *begin, uint32_t data_len)
 {
-	LOG_DBG("Enter %s %d , addr from [%08lx] to [%08lx].\n", __func__, __LINE__, (uint32_t)begin, ((uint32_t)begin + data_len));
+	LOG_DBG("Enter %s %d , addr from [%08x] to [%08x].\n", __func__, __LINE__, (unsigned int)begin, (unsigned int)((uint32_t)begin + data_len));
 	icache_invalid_range_hal(begin, data_len);
 	dcache_invalid_range_hal(begin, data_len);
 }
