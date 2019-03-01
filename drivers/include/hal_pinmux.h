@@ -95,7 +95,7 @@ static inline void uwp_pmux_func_clear(u32_t pin)
 	u32_t pin_reg = PINMUX_PIN_REG(pin);
 	u32_t conf = sys_read32(pin_reg);
 
-	conf &= (~(PMUX_PIN_FUNC(1)));
+	conf &= (~(PIN_FUNC_5));
 	sys_write32(conf, pin_reg);
 }
 
@@ -104,7 +104,7 @@ static inline void uwp_pmux_func_set(u32_t pin, u32_t func)
 	u32_t pin_reg = PINMUX_PIN_REG(pin);
 	u32_t conf = sys_read32(pin_reg);
 
-	conf |= (PMUX_PIN_FUNC(func));
+	conf |= func;
 	sys_write32(conf, pin_reg);
 }
 
