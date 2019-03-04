@@ -24,6 +24,11 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 #define CP_RUNNING_CHECK_CR 0x40a80000
 #define CP_RUNNING_BIT  0
 #define CP_WIFI_RUNNING_BIT     1
+#define CP_START_ADDR_OFFSET	16
+
+#define CP_START_ADDR_CONTAINER	0x0200D000
+#define CP_START_MODEM0_ADDR	(0x02000000 + FLASH_AREA_MODEM_0_OFFSET)
+#define CP_START_MODEM1_ADDR	(0x02000000 + FLASH_AREA_MODEM_1_OFFSET)
 
 extern void GNSS_Start(void);
 
@@ -63,24 +68,34 @@ int move_cp(char *src, char *dst, uint32_t size)
 int load_fw(void)
 {
 	int ret  = 0;
+	int *p_addr = (int *)CP_START_ADDR_CONTAINER;
+	char *addr;
 	char *src = NULL;
 	uint32_t offset = 0;
 
-	LOG_DBG("load cp firmware start");
+	LOG_INF("load cp firmware start");
+
+	if ((*p_addr != CP_START_MODEM0_ADDR) &&
+		(*p_addr != CP_START_MODEM1_ADDR)) {
+		addr = (char *)CP_START_MODEM0_ADDR + CP_START_ADDR_OFFSET;
+	} else {
+		addr = (char *)(*p_addr) + CP_START_ADDR_OFFSETs;
+	}
+
 	// load sector1
-	src = (char *)(CP_START_ADDR);
+	src = (char *)(addr);
 	ret = move_cp(src, (char *)CONFIG_CP_SECTOR1_LOAD_BASE, (uint32_t)CONFIG_CP_SECTOR1_LEN);
 	offset += CONFIG_CP_SECTOR1_LEN;
 	// load sector 2
-	src = (char *)(CP_START_ADDR + offset);
+	src = (char *)(addr + offset);
 	ret = move_cp(src, (char *)CONFIG_CP_SECTOR2_LOAD_BASE, (uint32_t)CONFIG_CP_SECTOR2_LEN);
 	offset += CONFIG_CP_SECTOR2_LEN;
 	// load sector 3
-	src = (char *)(CP_START_ADDR + offset);
+	src = (char *)(addr + offset);
 	ret = move_cp(src, (char *)CONFIG_CP_SECTOR3_LOAD_BASE, (uint32_t)CONFIG_CP_SECTOR3_LEN);
 	offset += CONFIG_CP_SECTOR3_LEN;
 	// load sector 4
-	src = (char *)(CP_START_ADDR + offset);
+	src = (char *)(addr + offset);
 	// move_cp(src,(char *)CONFIG_CP_SECTOR4_LOAD_BASE,(uint32_t)CONFIG_CP_SECTOR4_LEN);
 
 	if (ret < 0) {
@@ -231,6 +246,7 @@ int uwp_mcu_init(void)
 
 	cp_sram_init();
 	GNSS_Start();
+
 	ret = cp_mcu_pull_reset();
 	if (ret < 0) {
 		LOG_ERR("reset CP MCU fail");
