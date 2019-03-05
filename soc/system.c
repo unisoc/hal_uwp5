@@ -40,6 +40,8 @@ void uwp_clock_init(void)
 
 void uwp_glb_init(void)
 {
+#ifdef CONFIG_SOC_UWP5661
 	uwp_clock_init();
+#endif
 	uwp_cache_init();
 }
