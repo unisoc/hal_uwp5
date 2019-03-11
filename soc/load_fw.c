@@ -79,7 +79,7 @@ int load_fw(void)
 		(*p_addr != CP_START_MODEM1_ADDR)) {
 		addr = (char *)CP_START_MODEM0_ADDR + CP_START_ADDR_OFFSET;
 	} else {
-		addr = (char *)(*p_addr) + CP_START_ADDR_OFFSETs;
+		addr = (char *)(*p_addr) + CP_START_ADDR_OFFSET;
 	}
 
 	// load sector1
