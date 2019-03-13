@@ -1052,9 +1052,15 @@ __ramfunc int spiflash_write(struct spi_flash *flash, u32_t offset,
 __ramfunc int spiflash_erase(struct spi_flash *flash, u32_t offset, u32_t len)
 {
 	u32_t i, sectors_nr;
+	u32_t dummp;
+
+	dummp = len % flash->sector_size;
+	if (dummp) {
+		LOG_ERR("SF: Erase param length not multiple of erase size\n");
+		return -1;
+	}
 
 	sectors_nr = len / flash->sector_size;
-
 	for (i = 0; i < sectors_nr; i++) {
 		if (spiflash_cmd_erase(flash, CMD_SECTOR_ERASE, offset))
 			return -1;
