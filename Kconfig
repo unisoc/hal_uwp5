@@ -56,3 +56,10 @@ config USE_UWP_HAL_SFC
 	help
 	  Provide interfaces to operate SFC.
 endif
+
+config SYSTEM_CACHE_DISABLE
+	bool "API to disable system cache"
+	help
+	  This option disenables the uwp_cache_init() API in the kernel. It is
+	  needed by some subsystems (which will automatically select it), but is
+	  rarely needed by applications.

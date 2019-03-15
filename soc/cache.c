@@ -1,4 +1,7 @@
 #include <zephyr.h>
+#include <kernel.h>
+#include <device.h>
+#include <init.h>
 #include <uwp_hal.h>
 #include "cache.h"
 
@@ -8,7 +11,7 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 static CACHE_BLOCK_OP_T C_ICACHE_DEFAULT_BLOCK_CFG[] = {
 	{ BLOCK_0, 0x00000000, FALSE, FALSE },
 	{ BLOCK_1, 0x00100000, TRUE, FALSE },
-	{ BLOCK_2, 0x001EE000, FALSE, FALSE },
+	{ BLOCK_2, 0x001EE000, TRUE, FALSE },
 	{ BLOCK_3, 0x02000000, TRUE, FALSE },
 	{ BLOCK_4, 0x04000000, FALSE, FALSE },
 	{ BLOCK_5, 0x04480000, FALSE, FALSE },
@@ -18,8 +21,8 @@ static CACHE_BLOCK_OP_T C_ICACHE_DEFAULT_BLOCK_CFG[] = {
 
 static CACHE_BLOCK_OP_T C_DCACHE_DEFAULT_BLOCK_CFG[] = {
 	{ BLOCK_0, 0x00000000, FALSE, FALSE },
-	{ BLOCK_1, 0x00100000, FALSE, FALSE },
-	{ BLOCK_2, 0x001EE000, FALSE, FALSE },
+	{ BLOCK_1, 0x00100000, TRUE, FALSE },
+	{ BLOCK_2, 0x001EE000, TRUE, FALSE },
 	{ BLOCK_3, 0x02000000, TRUE, FALSE },
 	{ BLOCK_4, 0x04000000, FALSE, FALSE },
 	{ BLOCK_5, 0x04480000, FALSE, FALSE },
@@ -71,10 +74,10 @@ static u32_t dcache_bus_remap_addr[] = {
 	REG_DCACHE_BUS_REMAP7,
 };
 
-u32_t *cache_bus_cfg_addr = &dcache_bus_cfg_addr[0];
-u32_t *cache_bus_remap_addr = &dcache_bus_remap_addr[0];
-CACHE_BLOCK_OP_T *block_cfg = NULL;
-u32_t CACHE_BUS_STS0, CACHE_CFG0, CACHE_CMD_CFG0,
+static u32_t *cache_bus_cfg_addr = &dcache_bus_cfg_addr[0];
+static u32_t *cache_bus_remap_addr = &dcache_bus_remap_addr[0];
+static CACHE_BLOCK_OP_T *block_cfg = NULL;
+static u32_t CACHE_BUS_STS0, CACHE_CFG0, CACHE_CMD_CFG0,
       CACHE_CMD_CFG1, CACHE_CMD_CFG2, CACHE_INT_CLR,
       CACHE_INT_RAW_STS, CACHE_INT_EN, CACHE_INT_MSK_STS,
       CACHE_WRITE_MISS_CNT, CACHE_WRITE_HIT_CNT, CACHE_READ_MISS_CNT,
@@ -93,17 +96,17 @@ void cache_waiting_idle(void)
 	return;
 }
 
-void icache_enable_block(CACHE_BLOCK_E block_num)
+static void icache_enable_block(CACHE_BLOCK_E block_num)
 {
 	set_bits((0x1 << block_num), REG_ICACHE_BASE);
 }
 
-void icache_disable_block(CACHE_BLOCK_E block_num)
+static void icache_disable_block(CACHE_BLOCK_E block_num)
 {
 	clr_bits((0x1 << block_num), REG_ICACHE_BASE);
 }
 
-void dcache_enable_block(CACHE_BLOCK_E block_num)
+static void dcache_enable_block(CACHE_BLOCK_E block_num)
 {
 	u32_t t = 0;
 
@@ -120,7 +123,7 @@ void dcache_enable_block(CACHE_BLOCK_E block_num)
 	set_bits(0x1 << block_num, REG_DCACHE_BASE);
 }
 
-void dcache_disable_block(CACHE_BLOCK_E block_num)
+static void dcache_disable_block(CACHE_BLOCK_E block_num)
 {
 	u32_t t = 0;
 
@@ -152,7 +155,7 @@ static inline void cache_cmd_range(u32_t start, u32_t end)
 	sci_write32(CACHE_CMD_CFG1, end & CACHE_END_ADDR_MASK);
 }
 
-u32_t cache_check(CACHE_CMD_T *cmd)
+static u32_t cache_check(CACHE_CMD_T *cmd)
 {
 	u32_t ret = 0;
 	u32_t size = BLOCK_MAX;
@@ -224,7 +227,7 @@ u32_t cache_check(CACHE_CMD_T *cmd)
 	return ret;
 }
 
-u32_t cache_execmd(CACHE_CMD_T *cmd, u32_t force)
+static u32_t cache_execmd(CACHE_CMD_T *cmd, u32_t force)
 {
 	u32_t value = CACHE_CMD_ISSUE_START;
 	u32_t ret = 0;
@@ -291,7 +294,7 @@ u32_t cache_execmd(CACHE_CMD_T *cmd, u32_t force)
 	return ret;
 }
 
-u32_t cache_enableblock(CACHE_BLOCK_OP_T *pblock, cache_op op)
+static u32_t cache_enableblock(CACHE_BLOCK_OP_T *pblock, cache_op op)
 {
 	u32_t enable_bit = pblock->id - (u32_t) (BLOCK_0);
 
@@ -322,7 +325,7 @@ u32_t cache_enableblock(CACHE_BLOCK_OP_T *pblock, cache_op op)
 	}
 }
 
-u32_t cache_protblock(CACHE_BLOCK_OP_T *pblock, cache_op op)
+static u32_t cache_protblock(CACHE_BLOCK_OP_T *pblock, cache_op op)
 {
 	u32_t enable_bit = pblock->id - (u32_t) (BLOCK_0) +16;
 
@@ -343,7 +346,7 @@ u32_t cache_protblock(CACHE_BLOCK_OP_T *pblock, cache_op op)
 	}
 }
 
-void cache_configaddr(CACHE_BLOCK_OP_T *pblock)
+static void cache_configaddr(CACHE_BLOCK_OP_T *pblock)
 {
 	if (pblock->id < BLOCK_1 || pblock->id > BLOCK_7) {
 		return;
@@ -353,14 +356,14 @@ void cache_configaddr(CACHE_BLOCK_OP_T *pblock)
 			pblock->start);
 }
 
-void cache_size_sel(CACHE_SIZE_SEL_E cache_size)
+static void cache_size_sel(CACHE_SIZE_SEL_E cache_size)
 {
 	clr_bits(CACHE_DEBUG_EN, CACHE_CFG0);
 	set_bits(((cache_size) << BIT_CACHE_SZIE_OFFSET)
 		 & CACHE_SIZE_SEL_MASK, CACHE_CFG0);
 }
 
-u32_t cache_execmd_invalid_clean_all(CACHE_CMD_T *cmd, u32_t force)
+static u32_t cache_execmd_invalid_clean_all(CACHE_CMD_T *cmd, u32_t force)
 {
 	u32_t value = CACHE_CMD_ISSUE_START;
 
@@ -387,21 +390,21 @@ u32_t cache_execmd_invalid_clean_all(CACHE_CMD_T *cmd, u32_t force)
 	return 0;
 }
 
-void cache_set_thr_mode(void)
+static void cache_set_thr_mode(void)
 {
 	clr_bits(CACHE_DEBUG_EN, CACHE_CFG0);
 	clr_bits(CACHE_WRITE_MODE_MASK, CACHE_CFG0);
 	set_bits(CACHE_WRITE_THROUGH, CACHE_CFG0);
 }
 
-void cache_set_wbk_allocate_mode(void)
+static void cache_set_wbk_allocate_mode(void)
 {
 	clr_bits(CACHE_DEBUG_EN, CACHE_CFG0);
 	clr_bits(CACHE_WRITE_MODE_MASK, CACHE_CFG0);
 	set_bits(CACHE_WRITE_BACK_ALLOCATE, CACHE_CFG0);
 }
 
-void icache_set_reg(void)
+static void icache_set_reg(void)
 {
 	CACHE_BUS_STS0 = REG_ICACHE_BUS_STS0;
 	CACHE_CFG0 = REG_ICACHE_CFG0;
@@ -423,7 +426,7 @@ void icache_set_reg(void)
 	block_cfg = &C_ICACHE_DEFAULT_BLOCK_CFG[0];
 }
 
-void dcache_set_reg(void)
+static void dcache_set_reg(void)
 {
 	CACHE_BUS_STS0 = REG_DCACHE_BUS_STS0;
 	CACHE_CFG0 = REG_DCACHE_CFG0;
@@ -445,7 +448,7 @@ void dcache_set_reg(void)
 	block_cfg = &C_DCACHE_DEFAULT_BLOCK_CFG[0];
 }
 
-void cache_execusecfg(CACHE_BLOCK_OP_T *pcfg, u32_t size)
+static void cache_execusecfg(CACHE_BLOCK_OP_T *pcfg, u32_t size)
 {
 	int32_t i;
 
@@ -457,7 +460,7 @@ void cache_execusecfg(CACHE_BLOCK_OP_T *pcfg, u32_t size)
 	}
 }
 
-uint32_t icache_check_all_block_disable(void)
+static uint32_t icache_check_all_block_disable(void)
 {
 	if (sci_read32(REG_ICACHE_BASE) & 0x000000FF)
 		return	0;
@@ -465,7 +468,7 @@ uint32_t icache_check_all_block_disable(void)
 		return	1;
 }
 
-uint32_t dcache_check_all_block_disable(void)
+static uint32_t dcache_check_all_block_disable(void)
 {
 	if (sci_read32(REG_DCACHE_BASE) & 0x000000FF)
 		return	0;
@@ -473,7 +476,7 @@ uint32_t dcache_check_all_block_disable(void)
 		return	1;
 }
 
-void dcache_clean_range(uint32_t start, uint32_t end)
+static void dcache_clean_range(uint32_t start, uint32_t end)
 {
 	CACHE_CMD_T command;
 
@@ -493,7 +496,7 @@ void dcache_clean_range(uint32_t start, uint32_t end)
 	cache_execmd(&command, TRUE);
 }
 
-void icache_invalid_range(uint32_t start, uint32_t end)
+static void icache_invalid_range(uint32_t start, uint32_t end)
 {
 	CACHE_CMD_T command;
 
@@ -506,7 +509,7 @@ void icache_invalid_range(uint32_t start, uint32_t end)
 	cache_execmd(&command, TRUE);
 }
 
-void dcache_invalid_range(uint32_t start, uint32_t end)
+static void dcache_invalid_range(uint32_t start, uint32_t end)
 {
 	CACHE_CMD_T command;
 
@@ -541,7 +544,7 @@ void cache_invalid_range_hal(uint8_t *begin, uint32_t data_len)
 	dcache_invalid_range_hal(begin, data_len);
 }
 
-void icache_phy_init(CACHE_SIZE_SEL_E icache_size)
+static void icache_phy_init(CACHE_SIZE_SEL_E icache_size)
 {
 	u32_t i;
 	CACHE_CMD_T cmd;
@@ -558,7 +561,7 @@ void icache_phy_init(CACHE_SIZE_SEL_E icache_size)
 	for (i = 0; i < 50; ++i) ;
 }
 
-void dcache_phy_init(CACHE_SIZE_SEL_E dcache_size)
+static void dcache_phy_init(CACHE_SIZE_SEL_E dcache_size)
 {
 	u32_t i;
 	CACHE_CMD_T cmd;
@@ -590,8 +593,12 @@ void icache_dcache_disable_block_hal(void)
 	dcache_disable_block(BLOCK_1);
 }
 
-void uwp_cache_init(void)
+static void uwp_cache_init(void)
 {
+#ifndef CONFIG_SYSTEM_CACHE_DISABLE
 	icache_phy_init(CACHE_32K);
 	dcache_phy_init(CACHE_32K);
+#endif
 }
+
+SYS_INIT(uwp_cache_init, POST_KERNEL, 1);
