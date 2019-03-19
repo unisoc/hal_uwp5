@@ -11,6 +11,7 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 #include <string.h>
 #include <uwp_hal.h>
 
+#if defined(CONFIG_SOC_UWP5661)
 #define CONFIG_CP_SECTOR1_LOAD_BASE 0x40a20000
 #define CONFIG_CP_SECTOR2_LOAD_BASE 0x40a80000
 #define CONFIG_CP_SECTOR3_LOAD_BASE 0x40e40000
@@ -19,6 +20,16 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 #define CONFIG_CP_SECTOR2_LEN 0x30000
 #define CONFIG_CP_SECTOR3_LEN 0x20000
 #define CONFIG_CP_SECTOR4_LEN 0x3D000
+#elif defined(CONFIG_SOC_UWP5662)
+#define CONFIG_CP_SECTOR1_LOAD_BASE 0x40a50000
+#define CONFIG_CP_SECTOR2_LOAD_BASE 0x40a80000
+#define CONFIG_CP_SECTOR3_LOAD_BASE 0x40e40000
+#define CONFIG_CP_SECTOR4_LOAD_BASE 0x40f40000
+#define CONFIG_CP_SECTOR1_LEN 0x2b000
+#define CONFIG_CP_SECTOR2_LEN 0x2c000
+#define CONFIG_CP_SECTOR3_LEN 0x0f000
+#define CONFIG_CP_SECTOR4_LEN 0x3D000
+#endif
 
 #define CP_START_ADDR (0x020C0000 + 16)
 #define CP_RUNNING_CHECK_CR 0x40a80000
@@ -82,21 +93,27 @@ int load_fw(void)
 		addr = (char *)(*p_addr) + CP_START_ADDR_OFFSET;
 	}
 
-	// load sector1
+	/* load sector1 */
 	src = (char *)(addr);
-	ret = move_cp(src, (char *)CONFIG_CP_SECTOR1_LOAD_BASE, (uint32_t)CONFIG_CP_SECTOR1_LEN);
+	ret = move_cp(src, (char *)CONFIG_CP_SECTOR1_LOAD_BASE,
+			(uint32_t)CONFIG_CP_SECTOR1_LEN);
 	offset += CONFIG_CP_SECTOR1_LEN;
-	// load sector 2
+	/* load sector 2 */
 	src = (char *)(addr + offset);
-	ret = move_cp(src, (char *)CONFIG_CP_SECTOR2_LOAD_BASE, (uint32_t)CONFIG_CP_SECTOR2_LEN);
+	ret = move_cp(src, (char *)CONFIG_CP_SECTOR2_LOAD_BASE,
+			(uint32_t)CONFIG_CP_SECTOR2_LEN);
 	offset += CONFIG_CP_SECTOR2_LEN;
-	// load sector 3
+	/* load sector 3 */
 	src = (char *)(addr + offset);
-	ret = move_cp(src, (char *)CONFIG_CP_SECTOR3_LOAD_BASE, (uint32_t)CONFIG_CP_SECTOR3_LEN);
+	ret = move_cp(src, (char *)CONFIG_CP_SECTOR3_LOAD_BASE,
+			(uint32_t)CONFIG_CP_SECTOR3_LEN);
 	offset += CONFIG_CP_SECTOR3_LEN;
-	// load sector 4
+#ifdef CONFIG_SOC_UWP5662
+	/* load sector 4 */
 	src = (char *)(addr + offset);
-	// move_cp(src,(char *)CONFIG_CP_SECTOR4_LOAD_BASE,(uint32_t)CONFIG_CP_SECTOR4_LEN);
+	move_cp(src, (char *)CONFIG_CP_SECTOR4_LOAD_BASE,
+			(uint32_t)CONFIG_CP_SECTOR4_LEN);
+#endif
 
 	if (ret < 0) {
 		return ret;
@@ -108,29 +125,36 @@ int load_fw(void)
 
 int cp_mcu_pull_reset(void)
 {
-	int i = 0;
-
 	LOG_DBG("gnss mcu hold start");
-	// dap sel
+	/* dap sel */
 	sci_reg_or(0x4083c064, BIT(0) | BIT(1));
-	// dap rst
+	/* dap rst */
+
+#if defined(CONFIG_SOC_UWP5661)
 	sci_reg_and(0x4083c000, ~(BIT(28) | BIT(29)));
-	// dap eb
+#endif
+
+	/* dap eb */
 	sci_reg_or(0x4083c024, BIT(30) | BIT(31));
-	// check dap is ok ?
+
+#if defined(CONFIG_SOC_UWP5661)
+	/* check dap is ok */
+	int i = 0;
 	while (sci_read32(0x408600fc) != 0x24770011 && i < 20) {
 		i++;
 	}
 	if (sci_read32(0x408600fc) != 0x24770011) {
 		LOG_ERR("check dap is ok fail");
 	}
-	// hold gnss core
+	/* hold gnss core */
 	sci_write32(0x40860000, 0x22000012);
 	sci_write32(0x40860004, 0xe000edf0);
 	sci_write32(0x4086000c, 0xa05f0003);
-	// restore dap sel
+#endif
+
+	/* restore dap sel */
 	sci_reg_and(0x4083c064, ~(BIT(0) | BIT(1)));
-	// remap gnss RAM to 0x0000_0000 address as boot from RAM
+	/* remap gnss RAM to 0x0000_0000 address as boot from RAM */
 	sci_reg_or(0x40bc800c, BIT(0) | BIT(1));
 
 	LOG_DBG("gnss mcu hold done");
@@ -143,10 +167,18 @@ int cp_mcu_release_reset(void)
 	unsigned int value = 0;
 
 	LOG_DBG("gnss mcu release start. ");
-	// reset the gnss CM4 core,and CM4 will run from IRAM(which is remapped to 0x0000_0000)
+	/**
+	 * reset the gnss CM4 core,
+	 * and CM4 will run from IRAM
+	 * (which is remapped to 0x0000_0000)
+	 */
+#if defined(CONFIG_SOC_UWP5661)
 	value = sci_read32(0x40bc8004);
 	value |= 0x1;
 	sci_write32(0x40bc8004, value);
+#elif defined(CONFIG_SOC_UWP5662)
+	sci_write32(0x40bc8280, value);
+#endif
 
 	LOG_DBG("gnss mcu release done. ");
 
@@ -203,7 +235,11 @@ static void cp_sram_init(void)
 	unsigned int val;
 
 	val = sys_read32(0x40130004); /* enable */
+#if defined(CONFIG_SOC_UWP5661)
 	val |= 0x220;
+#elif defined(CONFIG_SOC_UWP5662)
+	val |= 0x20;
+#endif
 	sys_write32(val, 0x40130004);
 	k_sleep(50);
 
@@ -213,12 +249,15 @@ static void cp_sram_init(void)
 	while (!(sys_read32(0x4083c00c) & (0x1 << 14))) {
 	}
 
+#if defined(CONFIG_SOC_UWP5661)
 	val = sys_read32(0x4083c0a8);
 	val &= ~(0x4);
 	sys_write32(val, 0x4083c0a8);
 	while (!(sys_read32(0x4083c00c) & (0x1 << 16))) {
 	}
+#endif
 
+#if defined(CONFIG_SOC_UWP5661)
 	val = sys_read32(0x4083c134); /* close MEM PD */
 	val &= 0xffffff;
 	sys_write32(val, 0x4083c134);
@@ -226,6 +265,7 @@ static void cp_sram_init(void)
 	val = sys_read32(0x4083c130);
 	val &= 0xfffffff0;
 	sys_write32(val, 0x4083c130);
+#endif
 
 	LOG_INF("CP SRAM init done");
 }
