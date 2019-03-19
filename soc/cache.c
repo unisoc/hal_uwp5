@@ -11,7 +11,7 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 static CACHE_BLOCK_OP_T C_ICACHE_DEFAULT_BLOCK_CFG[] = {
 	{ BLOCK_0, 0x00000000, FALSE, FALSE },
 	{ BLOCK_1, 0x00100000, TRUE, FALSE },
-	{ BLOCK_2, 0x001EE000, TRUE, FALSE },
+	{ BLOCK_2, 0x001EE000, FALSE, FALSE },
 	{ BLOCK_3, 0x02000000, TRUE, FALSE },
 	{ BLOCK_4, 0x04000000, FALSE, FALSE },
 	{ BLOCK_5, 0x04480000, FALSE, FALSE },
@@ -22,7 +22,7 @@ static CACHE_BLOCK_OP_T C_ICACHE_DEFAULT_BLOCK_CFG[] = {
 static CACHE_BLOCK_OP_T C_DCACHE_DEFAULT_BLOCK_CFG[] = {
 	{ BLOCK_0, 0x00000000, FALSE, FALSE },
 	{ BLOCK_1, 0x00100000, TRUE, FALSE },
-	{ BLOCK_2, 0x001EE000, TRUE, FALSE },
+	{ BLOCK_2, 0x001EE000, FALSE, FALSE },
 	{ BLOCK_3, 0x02000000, TRUE, FALSE },
 	{ BLOCK_4, 0x04000000, FALSE, FALSE },
 	{ BLOCK_5, 0x04480000, FALSE, FALSE },
@@ -460,6 +460,7 @@ static void cache_execusecfg(CACHE_BLOCK_OP_T *pcfg, u32_t size)
 	}
 }
 
+#if 0
 static uint32_t icache_check_all_block_disable(void)
 {
 	if (sci_read32(REG_ICACHE_BASE) & 0x000000FF)
@@ -467,6 +468,7 @@ static uint32_t icache_check_all_block_disable(void)
 	else
 		return	1;
 }
+#endif
 
 static uint32_t dcache_check_all_block_disable(void)
 {
@@ -593,12 +595,8 @@ void icache_dcache_disable_block_hal(void)
 	dcache_disable_block(BLOCK_1);
 }
 
-static void uwp_cache_init(void)
+void uwp_cache_init(void)
 {
-#ifndef CONFIG_SYSTEM_CACHE_DISABLE
 	icache_phy_init(CACHE_32K);
 	dcache_phy_init(CACHE_32K);
-#endif
 }
-
-SYS_INIT(uwp_cache_init, POST_KERNEL, 1);
