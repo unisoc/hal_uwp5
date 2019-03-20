@@ -205,8 +205,8 @@ static struct pm_pinfunc_tag pm_func[] = {
 	{PIN_U1RTS_REG,          PIN_U1RTS_VALUE | PIN_FUNC_DEF },
 	{PIN_U1CTS_REG,          PIN_U1CTS_VALUE | PIN_FUNC_DEF },
 	{PIN_PCIE_CLKREQ_L_REG,  PIN_PCIE_CLKREQ_L_VALUE | PIN_FUNC_DEF },
-	{PIN_PCIE_RST_L_REG,     PIN_PCIE_RST_L_VALUE | PIN_FUNC_DEF },
-	{PIN_PCIE_WAKE_L_REG,    PIN_PCIE_WAKE_L_VALUE | PIN_FUNC_DEF },
+	{PIN_PCIE_RST_L_REG,     PIN_PCIE_RST_L_VALUE | PIN_FUNC_1 },
+	{PIN_PCIE_WAKE_L_REG,    PIN_PCIE_WAKE_L_VALUE | PIN_FUNC_1 },
 	{PIN_CHIP_EN_REG,        PIN_CHIP_EN_VALUE | PIN_FUNC_DEF },
 
 	{0xffffffff, 0xffffffff}
@@ -218,11 +218,16 @@ static struct pm_pinfunc_tag pm_default_global_map[] = {
 	{0xffffffff, 0xffffffff}
 };
 
+#define U2RXD_SEL_BIT	3
 int uwp_pinmux_init(struct device *dev)
 {
 	int i = 0;
 
 	__pin_enbable(TRUE);
+#if defined(CONFIG_SOC_UWP5661)
+	/*for uart2 need select G0/G1*/
+	sys_set_bit(REG_AON_CM4_SLEEP_HOLD, U2RXD_SEL_BIT);
+#endif
 	for ( ; ; ) {
 		struct pm_pinfunc_tag *p_func = &pm_func[i];
 	/*check if search to end*/
