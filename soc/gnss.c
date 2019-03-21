@@ -701,12 +701,16 @@ void GNSS_Start(void)
 	RF_CFG();
 
 	M4_CLK_CFG();
+	DELAY(1);
 #if defined(CONFIG_SOC_UWP5661)
 	sci_reg_or(GNSS_BB_EN, BIT(4) | BIT(6) | BIT(7));
 #elif defined(CONFIG_SOC_UWP5662)
 	sci_reg_or(GNSS_BB_EN, BIT(3) | BIT(5) | BIT(6));
 #endif
+	DELAY(1);
 	sci_reg_or(BB_DBG_CLK_CTRL, BIT(0));
+	DELAY(1);
 	sci_write32(DATA2RAM_CONF0_ADDR, 0x04000002);
+	DELAY(1);
 	LOG_DBG("gnss init done");
 }
