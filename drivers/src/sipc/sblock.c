@@ -19,7 +19,10 @@ static struct sblock_mgr sblocks[SIPC_ID_NR][SMSG_CH_NR-SMSG_CH_OFFSET];
 
 int sblock_get(u8_t dst, u8_t channel, struct sblock *blk, int timeout);
 int sblock_send(u8_t dst, u8_t channel, u8_t prio, struct sblock *blk);
+
+#if defined(CONFIG_SOC_UWP5661)
 extern int sprd_bt_irq_init(void);
+#endif
 
 static int sblock_recover(u8_t dst, u8_t channel)
 {
@@ -127,9 +130,11 @@ void sblock_process(struct smsg *msg)
 		sblock->state = SBLOCK_STATE_READY;
 		recovery = 1;
 		LOG_DBG("ap cp create %d channel success!", sblock->channel);
+#if defined(CONFIG_SOC_UWP5661)
 		if (sblock->channel == SMSG_CH_BT) {
 			sprd_bt_irq_init();
 		}
+#endif
 		break;
 	case SMSG_TYPE_EVENT:
 		switch (msg->flag) {
