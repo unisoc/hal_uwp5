@@ -28,8 +28,11 @@ extern "C" {
 #define SBLOCK_BLK_STATE_DONE		0
 #define SBLOCK_BLK_STATE_PENDING	1
 
+#if defined(CONFIG_SOC_UWP5661)
 #define SBLOCK_SMEM_ADDR              0x001E1000
-
+#elif defined(CONFIG_SOC_UWP5662)
+#define SBLOCK_SMEM_ADDR              0x001D8000
+#endif
 #define BLOCK_HEADROOM_SIZE     16
 #define CTRLPATH_SBLOCK_SMEM_ADDR   SBLOCK_SMEM_ADDR
 
