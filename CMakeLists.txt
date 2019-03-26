@@ -11,5 +11,6 @@ if(CONFIG_HAS_UWP)
 	zephyr_sources_ifdef(CONFIG_USE_UWP_HAL_GNSS soc/gnss.c)
 	zephyr_sources_ifdef(CONFIG_USE_UWP_HAL_FW soc/load_fw.c)
 
-	zephyr_sources_ifdef(CONFIG_PINMUX_UWP drivers/src/hal_pinmux.c)
+	zephyr_sources_ifdef(CONFIG_SOC_UWP5661&&CONFIG_PINMUX_UWP drivers/src/hal_pinmux_uwp5661.c)
+	zephyr_sources_ifdef(CONFIG_SOC_UWP5662&&CONFIG_PINMUX_UWP drivers/src/hal_pinmux_uwp5662.c)
 endif()

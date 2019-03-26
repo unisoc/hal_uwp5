@@ -29,8 +29,14 @@ extern "C" {
 #include "hal_aon_glb.h"
 #include "hal_soc.h"
 
-#include "hal_pin_reg.h"
-#include "hal_pinmux.h"
+#if defined(CONFIG_SOC_UWP5661)
+#include "hal_pin_reg_uwp5661.h"
+#include "hal_pinmux_uwp5661.h"
+#elif defined(CONFIG_SOC_UWP5662)
+#include "hal_pin_reg_uwp5662.h"
+#include "hal_pinmux_uwp5662.h"
+#endif
+
 #include "hal_pinmap.h"
 #include "hal_pinmux_api.h"
 
