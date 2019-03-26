@@ -50,6 +50,11 @@ extern "C" {
 
 #define WDG_IRQ_MSK_BIT BIT(0)
 
+enum wdt_mode {
+	WDT_MODE_RESET = 0,
+	WDT_MODE_INTERRUPT_RESET
+};
+
 	struct uwp_wdg {
 		u32_t load_low;
 		u32_t load_high;
