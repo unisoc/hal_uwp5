@@ -169,12 +169,14 @@ static inline void uwp_uart_set_byte_len(volatile struct uwp_uart *uart,
 
 static inline void uwp_uart_init(volatile struct uwp_uart *uart)
 {
-//	uart->cdk0.cdk0 = 0xe1;
-
 	uart->ien = 0;
 	uart->ctrl1.bit.rx_tout_thld = 1;
 	uart->ctrl2.bit.rxf_full_thld = 1;
 	uart->ctrl2.bit.txf_empty_thld = 64;
+	/*for hardware flow control*/
+	uart->ctrl1.bit.rcv_hw_flow_en = 1;
+	uart->ctrl1.bit.rcv_hw_flow_thld = 50;
+	uart->ctrl1.bit.tx_hw_flow_en = 1;
 }
 
 static inline void uwp_uart_int_enable(volatile struct uwp_uart *uart,
