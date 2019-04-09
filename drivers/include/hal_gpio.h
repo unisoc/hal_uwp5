@@ -12,9 +12,7 @@ extern "C" {
 #endif
 
 #include "uwp_hal.h"
-
-#define GPIO_DIR_OUTPUT		1
-#define GPIO_DIR_INPUT		0
+#include <gpio.h>
 
 #define GPIO_INT_DETECT_LEVEL	1
 #define GPIO_INT_DETECT_EDGE	0
@@ -97,7 +95,7 @@ extern "C" {
 	{
 		volatile struct uwp_gpio *gpio = UWP_GPIO(base);
 
-		if(dir == GPIO_DIR_OUTPUT)
+		if (dir == GPIO_DIR_OUT)
 			gpio->dir |= pin_map;
 		else
 			gpio->dir &= (~pin_map);

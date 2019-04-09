@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef _HAL_PIN_REG_H
-#define _HAL_PIN_REG_H
+#ifndef _HAL_PIN_REG_UWP5662_H
+#define _HAL_PIN_REG_UWP5662_H
 
 #ifdef __cpluscplus
 extern "C"

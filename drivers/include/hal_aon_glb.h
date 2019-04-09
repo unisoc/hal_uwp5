@@ -42,6 +42,7 @@ extern "C" {
 #define REG_AON_CHIP_ID			(BASE_AON_GLB + 0x208)
 #define REG_AON_GPIO_MODE1		(BASE_AON_GLB + 0x20C)
 #define REG_AON_GPIO_MODE2		(BASE_AON_GLB + 0x210)
+#define REG_AON_CM4_SLEEP_HOLD		(BASE_AON_GLB + 0x238)
 
 	enum {
 		AON_EB_SYST = 0,
