@@ -57,6 +57,8 @@ extern "C" {
 #define BIT_AHB_BRG_BYPASS_MODE             BIT(1)
 #define BIT_AHB_BRG_BYPASS_SWEN             BIT(0)
 
+#define APB_RST_WCI2		28
+
 #define APB_MCU_SOFT_RST	0
 #define APB_PWR_ON_RST		0
 #define APB_SYS_SOFT_RST	0
