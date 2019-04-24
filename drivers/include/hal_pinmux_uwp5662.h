@@ -14,6 +14,8 @@
 #include "uwp_hal.h"
 #include <device.h>
 
+#define GPIO_HIGHZ		(1<<31)
+
 /* pretend that array will cover pin functions */
 
 static inline void __pin_enbable(u8_t enable)
@@ -35,18 +37,34 @@ static inline void uwp_pmux_func_clear(u32_t pin_reg)
 
 static inline void uwp_pmux_func_set(u32_t pin_reg, u32_t func)
 {
-		if (func & PIN_FUNC_MSK) {
-			u32_t conf = sys_read32(pin_reg);
+	if (func & PIN_FUNC_MSK) {
+		u32_t conf = sys_read32(pin_reg);
+		u32_t pin_func = func & PIN_FUNC_MSK;
 
-			conf |= func;
-			sci_glb_set(pin_reg, conf);
-		}
-		if (func & (~PIN_FUNC_MSK)) {
-			u32_t conf = sys_read32(GROUP(pin_reg));
+		conf |= pin_func;
+		sci_glb_set(pin_reg, conf);
+	}
 
-			conf |= (func & (~PIN_FUNC_MSK));
-			sci_glb_set(GROUP(pin_reg), conf);
-		}
+	if (func & GPIO_HIGHZ) {
+		u32_t conf = sys_read32(GROUP(pin_reg));
+
+		conf &= (~(PIN_O_EN|PIN_I_EN));
+
+		/* conf |= PIN_PADI_SWITCH; */
+
+		conf &= (~PIN_DSLP_MSK);
+		conf &= (~(PIN_FPD_EN|PIN_FPU_EN));
+
+		sci_glb_set(GROUP(pin_reg), conf);
+	}
+
+	if (func & (~(PIN_FUNC_MSK|GPIO_HIGHZ))) {
+		u32_t conf = sys_read32(GROUP(pin_reg));
+
+		conf |= (func & (~(PIN_FUNC_MSK|GPIO_HIGHZ)));
+		printk("group address-1: %x\n", conf);
+		sci_glb_set(GROUP(pin_reg), conf);
+	}
 }
 
 static inline void uwp_pmux_get(u32_t pin_reg, u32_t *func)

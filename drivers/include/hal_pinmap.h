@@ -40,25 +40,12 @@
 #define PIN_FUNC_4         (0X04<<4)
 #define PIN_FUNC_5         (0X05<<4)
 
-
 #if defined(CONFIG_SOC_UWP5661)
+#define PIN_FUNC_MSK       (0X07<<4)
 #define PIN_FPD_EN         BIT(7)
 #define PIN_FPU_EN         BIT(8)
 #define PIN_FPX_EN         0X00
 #define PIN_FPU_MSK        (0X03<<7)
-#define PIN_FUNC_MSK       (0X07<<4)
-
-#elif defined(CONFIG_SOC_UWP5662)
-#define PIN_FPD_EN         BIT(6)
-#define PIN_FPU_EN         BIT(7)
-#define PIN_FPX_EN         0X00
-#define PIN_FPU_MSK        (0X03<<6)
-#define PIN_FUNC_MSK       (0X03<<4)
-
-#endif
-
-#if defined(CONFIG_SOC_UWP5661)
-/* drive strength select*/
 #define PIN_DS_0           (0x00<<14)
 #define PIN_DS_1           (0x01<<14)
 #define PIN_DS_2           (0x02<<14)
@@ -68,6 +55,13 @@
 #define PIN_DS_6           (0x06<<14)
 #define PIN_DS_7           (0x07<<14)
 #elif defined(CONFIG_SOC_UWP5662)
+#define PIN_FUNC_MSK       (0X03<<4)
+#define PIN_FPD_EN         BIT(6)
+#define PIN_FPU_EN         BIT(7)
+#define PIN_FPX_EN         0x00
+#define PIN_FPU_MSK        (0x03<<6)
+#define PIN_PADI_SWITCH    (0x01<<10)
+#define PIN_DSLP_MSK       (0x03<<13)
 #define PIN_DS_0           (0x00<<19)
 #define PIN_DS_1           (0x01<<19)
 #define PIN_DS_2           (0x02<<19)
