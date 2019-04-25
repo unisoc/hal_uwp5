@@ -14,6 +14,8 @@
 #include "uwp_hal.h"
 #include <device.h>
 
+#define GPIO_HIGHZ		(1<<31)
+
 /* pretend that array will cover pin functions */
 
 static inline void __pin_enbable(u8_t enable)
@@ -38,10 +40,18 @@ static inline void uwp_pmux_func_clear(u32_t pin_reg)
 
 static inline void uwp_pmux_func_set(u32_t pin_reg, u32_t func)
 {
-		u32_t conf = sys_read32(pin_reg);
+	u32_t conf = sys_read32(pin_reg);
 
-		conf |= func;
-		sys_write32(conf, pin_reg);
+	func &= (~GPIO_HIGHZ);
+	conf |= (~(func|GPIO_HIGHZ));
+	sys_write32(conf, pin_reg);
+
+	if (func & GPIO_HIGHZ) {
+		conf &= (~(PIN_O_EN|PIN_I_EN));
+
+		conf &= (~(PIN_FPD_EN|PIN_FPU_EN));
+	}
+	sys_write32(conf, pin_reg);
 }
 
 static inline void uwp_pmux_get(u32_t pin_reg, u32_t *func)
