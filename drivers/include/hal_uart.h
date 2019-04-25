@@ -174,9 +174,9 @@ static inline void uwp_uart_init(volatile struct uwp_uart *uart)
 	uart->ctrl2.bit.rxf_full_thld = 1;
 	uart->ctrl2.bit.txf_empty_thld = 64;
 	/*for hardware flow control*/
-	uart->ctrl1.bit.rcv_hw_flow_en = 1;
-	uart->ctrl1.bit.rcv_hw_flow_thld = 50;
-	uart->ctrl1.bit.tx_hw_flow_en = 1;
+	//uart->ctrl1.bit.rcv_hw_flow_en = 1;
+	//uart->ctrl1.bit.rcv_hw_flow_thld = 50;
+	//uart->ctrl1.bit.tx_hw_flow_en = 1;
 }
 
 static inline void uwp_uart_int_enable(volatile struct uwp_uart *uart,
