@@ -24,7 +24,8 @@ for i in $@; do
 	VAR_TYPE=${VAR_NAME}_t
 
 	echo "static $VAR_TYPE $VAR_NAME = {" >> $DST_FILE
-	sed -e '/^[A-Za-z]/!d' -re 's/= ([^,]*),([^\r\n]*)/= {\1,\2}/' -e 's/^/\t.&/' -e 's/\r/,&/' $SRC_FILE >> $DST_FILE
+	sed -i 's/\r\n//' $SRC_FILE
+	sed -e '/^[A-Za-z]/!d'  -e 's/^/\t.&/' -re 's/= ([^,]*),([^\r\n]*)/= {\1,\2}/' -e 's/[^\r\n]$/&,/' -e 's/\r/,&/' $SRC_FILE >> $DST_FILE
 	echo -e "};\n" >> $DST_FILE
 done
 
