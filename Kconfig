@@ -55,4 +55,70 @@ config USE_UWP_HAL_SFC
 	default y
 	help
 	  Provide interfaces to operate SFC.
+
+config CP_SECTOR1_LOAD_BASE
+	hex "Address"
+	default 0x40a20000 if SOC_UWP5661
+	default 0x40a50000 if SOC_UWP5662
+	help
+	  Running base.
+
+config CP_SECTOR2_LOAD_BASE
+	hex "Address"
+	default 0x40a80000 if (SOC_UWP5661 || SOC_UWP5662)
+	help
+	  Running base.
+
+config CP_SECTOR3_LOAD_BASE
+	hex "Address"
+	default 0x40e40000 if (SOC_UWP5661 || SOC_UWP5662)
+	help
+	  Running base.
+
+config CP_SECTOR4_LOAD_BASE
+	hex "Address"
+	default 0x40f40000 if (SOC_UWP5661 || SOC_UWP5662)
+	help
+	  Running base.
+
+config CP_SECTOR1_LEN
+	hex "Bytes"
+	default 0x58000 if SOC_UWP5661
+	default 0x2b000 if SOC_UWP5662
+	help
+	  Base length.
+
+config CP_SECTOR2_LEN
+	hex "Bytes"
+	default 0x30000 if SOC_UWP5661
+	default 0x2c000 if SOC_UWP5662
+	help
+	  Base length.
+
+config CP_SECTOR3_LEN
+	hex "Bytes"
+	default 0x20000 if SOC_UWP5661
+	default 0x1f400 if SOC_UWP5662
+	help
+	  Base length.
+
+config CP_SECTOR4_LEN
+	hex "Bytes"
+	default 0x3d000 if (SOC_UWP5661 || SOC_UWP5662)
+	help
+	  Base length.
+
+config CP_RUNNING_CHECK_CR
+	hex "Address"
+	default 0x40a80000 if SOC_UWP5661
+	default 0x4083c034 if SOC_UWP5662
+	help
+	  Provide a bit to check cp status.
+
+config CP_START_ADDR_CONTAINER
+	hex "Address"
+	default 0x0200d000 if (SOC_UWP5661 || SOC_UWP5662)
+	help
+	  Provide a space to store cp base.
+
 endif
