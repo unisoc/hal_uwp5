@@ -11,45 +11,20 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 #include <string.h>
 #include <uwp_hal.h>
 
-#if defined(CONFIG_SOC_UWP5661)
-#define CONFIG_CP_SECTOR1_LOAD_BASE 0x40a20000
-#define CONFIG_CP_SECTOR2_LOAD_BASE 0x40a80000
-#define CONFIG_CP_SECTOR3_LOAD_BASE 0x40e40000
-#define CONFIG_CP_SECTOR4_LOAD_BASE 0x40f40000
-#define CONFIG_CP_SECTOR1_LEN 0x58000
-#define CONFIG_CP_SECTOR2_LEN 0x30000
-#define CONFIG_CP_SECTOR3_LEN 0x20000
-#define CONFIG_CP_SECTOR4_LEN 0x3D000
-#elif defined(CONFIG_SOC_UWP5662)
-#define CONFIG_CP_SECTOR1_LOAD_BASE 0x40a50000
-#define CONFIG_CP_SECTOR2_LOAD_BASE 0x40a80000
-#define CONFIG_CP_SECTOR3_LOAD_BASE 0x40e40000
-#define CONFIG_CP_SECTOR4_LOAD_BASE 0x40f40000
-#define CONFIG_CP_SECTOR1_LEN 0x2b000
-#define CONFIG_CP_SECTOR2_LEN 0x2c000
-#define CONFIG_CP_SECTOR3_LEN 0x1f400
-#define CONFIG_CP_SECTOR4_LEN 0x3D000
-#endif
+#define CP_RUNNING_CHECK_CR CONFIG_CP_RUNNING_CHECK_CR
 
-#define CP_START_ADDR (0x020C0000 + 16)
+#define CP_RUNNING_BIT (0)
+#define CP_START_ADDR_OFFSET (16)
 
-#if defined(CONFIG_SOC_UWP5661)
-#define CP_RUNNING_CHECK_CR 0x40a80000
-#elif defined(CONFIG_SOC_UWP5662)
-#define CP_RUNNING_CHECK_CR 0x4083c034
-#endif
-
-#define CP_RUNNING_BIT  0
-#define CP_WIFI_RUNNING_BIT     1
-#define CP_START_ADDR_OFFSET	16
-
-#define CP_START_ADDR_CONTAINER	0x0200D000
-#define CP_START_MODEM0_ADDR	(0x02000000 + DT_FLASH_AREA_MODEM_0_OFFSET)
-#define CP_START_MODEM1_ADDR	(0x02000000 + DT_FLASH_AREA_MODEM_1_OFFSET)
+#define CP_START_ADDR_CONTAINER CONFIG_CP_START_ADDR_CONTAINER
+#define CP_START_MODEM0_ADDR \
+	(DT_FLASH_BASE_ADDRESS + DT_FLASH_AREA_MODEM_0_OFFSET)
+#define CP_START_MODEM1_ADDR \
+	(DT_FLASH_BASE_ADDRESS + DT_FLASH_AREA_MODEM_1_OFFSET)
 
 extern void GNSS_Start(void);
 
-int move_cp(char *src, char *dst, uint32_t size)
+static int move_cp(char *src, char *dst, uint32_t size)
 {
 	int *from, *to;
 	int len = 0;
@@ -82,7 +57,7 @@ int move_cp(char *src, char *dst, uint32_t size)
 	return 0;
 }
 
-int load_fw(void)
+static int load_fw(void)
 {
 	int ret  = 0;
 	int *p_addr = (int *)CP_START_ADDR_CONTAINER;
@@ -129,7 +104,7 @@ int load_fw(void)
 	return 0;
 }
 
-int cp_mcu_pull_reset(void)
+static int cp_mcu_pull_reset(void)
 {
 	LOG_DBG("gnss mcu hold start");
 	/* dap sel */
@@ -168,7 +143,7 @@ int cp_mcu_pull_reset(void)
 	return 0;
 }
 
-int cp_mcu_release_reset(void)
+static int cp_mcu_release_reset(void)
 {
 	unsigned int value = 0;
 
@@ -190,14 +165,15 @@ int cp_mcu_release_reset(void)
 
 	return 0;
 }
-void  cp_check_bit_clear(void)
+
+static void cp_check_bit_clear(void)
 {
 	sci_write32(CP_RUNNING_CHECK_CR, 0);
 
 	return;
 }
 
-int cp_check_running(void)
+static int cp_check_running(void)
 {
 	int value;
 	int cnt = 100;
@@ -210,26 +186,6 @@ int cp_check_running(void)
 		k_sleep(30);
 	} while (cnt-- > 0);
 
-	return -1;
-}
-
-int cp_check_wifi_running(void)
-{
-	int value;
-	int cnt = 100;
-
-	LOG_DBG("check if cp wifi is running");
-	do {
-		value = sci_read32(CP_RUNNING_CHECK_CR);
-		if (value & (1 << CP_WIFI_RUNNING_BIT)) {
-			LOG_DBG("CP wifi is running !!! %d", cnt);
-
-			while (1) ;
-			return 0;
-		}
-	} while (cnt-- > 0);
-
-	LOG_ERR("CP wifi running fail,Something must be wrong");
 	return -1;
 }
 
