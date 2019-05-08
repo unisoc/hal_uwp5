@@ -16,7 +16,6 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 #define CP_RUNNING_BIT (0)
 #define CP_START_ADDR_OFFSET (16)
 
-#define CP_START_ADDR_CONTAINER CONFIG_CP_START_ADDR_CONTAINER
 #define CP_START_MODEM0_ADDR \
 	(DT_FLASH_BASE_ADDRESS + DT_FLASH_AREA_MODEM_0_OFFSET)
 #define CP_START_MODEM1_ADDR \
@@ -60,7 +59,7 @@ static int move_cp(char *src, char *dst, uint32_t size)
 static int load_fw(void)
 {
 	int ret  = 0;
-	int *p_addr = (int *)CP_START_ADDR_CONTAINER;
+	int *p_addr = (int *)CONFIG_CP_START_ADDR_CONTAINER;
 	char *addr;
 	char *src = NULL;
 	uint32_t offset = 0;
