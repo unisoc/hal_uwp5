@@ -151,8 +151,6 @@ struct sblock_mgr {
 
 #define SBLOCKSZ_ALIGN(blksz, size) (((blksz)+((size)-1))&(~((size)-1)))
 #define is_power_of_2(x)	((x) != 0 && (((x) & ((x) - 1)) == 0))
-#define CONFIG_SBLOCK_THREAD_DEFPRIO 50
-#define CONFIG_SBLOCK_THREAD_STACKSIZE 1024
 
 #define SBLOCK_ALIGN_BYTES (4)
 

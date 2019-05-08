@@ -362,12 +362,11 @@ int sblock_register_notifier(u8_t dst, u8_t channel,
 {
 	struct sblock_mgr *sblock = &sblocks[dst][channel-SMSG_CH_OFFSET];
 
-#ifndef CONFIG_SIPC_WCN
 	if (sblock->handler) {
 		LOG_WRN("sblock handler already registered");
 		return -EBUSY;
 	}
-#endif
+
 	sblock->handler = handler;
 	sblock->data = data;
 

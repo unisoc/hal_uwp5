@@ -171,7 +171,7 @@ static inline void smsg_close_ack(u8_t dst, uint16_t channel)
 struct sblock {
 	void		*addr;
 	u32_t	length;
-#ifdef CONFIG_ZERO_COPY_SIPX
+#ifdef ZERO_COPY_SIPX
 	u16_t        index;
 	u16_t        offset;
 #endif

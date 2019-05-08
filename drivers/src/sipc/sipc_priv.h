@@ -12,8 +12,6 @@ extern "C" {
 #endif
 
 #define SMSG_CACHE_NR		32
-#define CONFIG_SMSG_THREAD_DEFPRIO 50
-#define CONFIG_SMSG_THREAD_STACKSIZE 1024
 
 	struct smsg_channel {
 		/* wait queue for recv-buffer */
@@ -52,7 +50,7 @@ extern "C" {
 
 		struct smsg_queue   queue[QUEUE_PRIO_MAX];
 
-#ifdef	CONFIG_SPRD_MAILBOX
+#ifdef	SPRD_MAILBOX
 		/* target core_id over mailbox */
 		int			core_id;
 #endif
