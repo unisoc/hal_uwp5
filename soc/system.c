@@ -10,6 +10,7 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 #include <zephyr.h>
 #include <uwp_hal.h>
 
+#if defined(CONFIG_SOC_UWP5661)
 void uwp_clock_init(void)
 {
 	/* Set system clock to 416M */
@@ -36,9 +37,8 @@ void uwp_clock_init(void)
 	/* 0x40844024 */
 	sci_reg_and(REG_AON_CLK_PRE_DIV_PLL_WAIT_SEL0_CFG, ~BIT(2));
 }
-
-
-void uwp5662_clock_init(void)
+#elif defined(CONFIG_SOC_UWP5662)
+void uwp_clock_init(void)
 {
 	/*set 320M cpu*/
 	/*0x40844200 + 0x24*/
@@ -46,14 +46,12 @@ void uwp5662_clock_init(void)
 	/*0x40844200 + 0x20*/
 	sci_write32(0x40844220, 0x5);
 }
+#else
+#error None UNISOC soc specified!
+#endif
 
 void uwp_glb_init(void)
 {
-#ifdef CONFIG_SOC_UWP5661
 	uwp_clock_init();
-#endif
-#ifdef CONFIG_SOC_UWP5662
-	uwp5662_clock_init();
-#endif
 	uwp_cache_init();
 }
