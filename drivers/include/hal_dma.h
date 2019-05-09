@@ -20,7 +20,20 @@ extern "C" {
 #define DMA_BASE_ADDR		(0x40120000)
 #define DMA_UWP_IRQ			25
 #define DMA_UWP_IRQ_PROI	3
-	
+#define DMA_MAX_CHANNEL		(32)
+#define UART1_DMA_MODE_BASE	(0x40040000 + 0x001C)
+#define DMA_CID_ADDR(x)		(DMA_BASE_ADDR + 0x2000 + x*0x4)
+/*for clear irq*/
+#define CHN_CFG_ERR_CLR		BIT(28)
+#define CHN_LLIST_INT_CLR	BIT(27)
+#define CHN_TRSC_INT_CLR	BIT(26)
+#define CHN_BLK_INT_CLR		BIT(25)
+#define CHN_FRAG_INT_CLR	BIT(24)
+#define CHN_TRANS_INT		BIT(2)
+#define UART_DMA_MODE		BIT(15)
+#define DMA_UART1_CID		2
+#define DMA_CHANNEL_UART1_TX	0
+#define DMA_CHANNEL_UART1_RX	1
 	enum dma_channel_status{
 		CHANNEL_IDLE = 0,
 		CHANNEL_BUSY,
@@ -76,7 +89,6 @@ extern "C" {
 
 	int check_irq_status(int index) {
 		if(sci_read32(DMA_BASE_ADDR + 0x10) & BIT(index)) {
-			printk("channel %d receive irq\n", index);
 			sci_reg_and(DMA_BASE_ADDR + 0x10, ~BIT(index));
 			return 1;
 		} else {
@@ -97,18 +109,76 @@ extern "C" {
 		volatile struct dma_full_chn_cfg* cfg = (struct dma_full_chn_cfg*)addr;
 		cfg->dest_addr = dest;
 	}
-
-	void dma_set_blk_len(u32_t addr, u32_t len)
+	
+	void reset_channel_cfg(u32_t addr)
 	{
-		volatile struct dma_full_chn_cfg* cfg = (struct dma_full_chn_cfg*)addr;
-		cfg->blk_len = len;
+		memset(addr, 0, 0x40);
 	}
-	void dma_set_fix_cfg(u32_t addr)
+	
+	void dma_stop_channel(u32_t addr)
 	{
 		volatile struct dma_full_chn_cfg* cfg = (struct dma_full_chn_cfg*)addr;
+		cfg->pause = 1;
+	}
+
+	void dma_uart_set_len(u32_t addr, u32_t len)
+	{
+		volatile struct dma_full_chn_cfg* cfg = (struct dma_full_chn_cfg*)addr;
+		u32_t min, max = 0, watermark = 64;
+
+		if (len < watermark) {
+		    min = len;
+		    max = watermark;
+		} else {
+		    min = watermark;
+		    max = len;
+		}
+		cfg->frag_len = min;
+		cfg->blk_len = max;
+		cfg->trsc_len = max;
+	}
+
+	void dma_set_uart_write_cfg(u32_t addr)
+	{
+		volatile struct dma_full_chn_cfg* cfg = (struct dma_full_chn_cfg*)addr;
+		cfg->chn_int |= CHN_TRANS_INT;
 		cfg->src_blk_step = 1;
+		cfg->dest_blk_step = 0;
+		return;
+	}
+
+	void dma_set_uart_read_cfg(u32_t addr)
+	{
+		volatile struct dma_full_chn_cfg* cfg = (struct dma_full_chn_cfg*)addr;
+		cfg->src_blk_step = 0;
 		cfg->dest_blk_step = 1;
 		return;
+	}
+
+	void set_channel_enable(u32_t addr)
+	{
+		volatile struct dma_full_chn_cfg* cfg = (struct dma_full_chn_cfg*)addr;
+		cfg->cfg |= 1;
+		return;
+	}
+
+	void dma_req_for_uart(u32_t channel)
+	{
+		sci_write32(DMA_CID_ADDR(DMA_UART1_CID), channel + 1);
+	}
+
+	void set_uart_dma_mode(u32_t channel)
+	{
+		if (channel == DMA_CHANNEL_UART1_TX || channel == DMA_CHANNEL_UART1_RX) {
+			sci_reg_or(UART1_DMA_MODE_BASE, UART_DMA_MODE);
+		}
+	}
+
+	void clear_channel_irq(u32_t addr)
+	{
+		volatile struct dma_full_chn_cfg* cfg = (struct dma_full_chn_cfg*)addr;
+		cfg->chn_int |= (CHN_CFG_ERR_CLR | CHN_LLIST_INT_CLR |
+				 CHN_TRSC_INT_CLR | CHN_BLK_INT_CLR | CHN_FRAG_INT_CLR);
 	}
 #ifdef __cplusplus
 }
