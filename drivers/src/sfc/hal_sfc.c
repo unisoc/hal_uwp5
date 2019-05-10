@@ -531,11 +531,20 @@ __ramfunc void spiflash_cmd_write(struct spi_flash *flash, const u8_t *cmd,
 __ramfunc int spiflash_cmd_poll_bit(struct spi_flash *flash,
 	unsigned long timeout, u8_t cmd, u32_t poll_bit, u32_t bit_value)
 {
-	u32_t status = 0;
+	u8_t status = 0;
 
 	do {
 
+		status = 0;
 		spiflash_cmd_read(flash, &cmd, 1, 0xFFFFFFFF, &status, 1);
+
+		/*flash chip request to reset delay and add read for preventing optimize*/
+#if !defined(CONFIG_XIP)
+		for (u32_t i = 0; i < 300; i++) {
+			sci_read32(SFC_STATUS);
+		}
+#endif
+
 		if (bit_value) {
 			if ((status & poll_bit))
 				return 0;
